@@ -1480,10 +1480,15 @@
         }
 
         async function handleLogout() {
+            // Konfirmasi hanya dijalankan saat admin menekan tombol Keluar.
+            const yakinKeluar = window.confirm('Apakah Anda yakin ingin keluar dari aplikasi SAKU SANTRI?');
+            if (!yakinKeluar) return;
+
             const token = state.adminToken;
             try { if (token) await apiCall('logout',[token]); } catch (err) { console.warn('Logout server:',err); }
             state.adminToken = null; state.santriList = []; state.transactions = [];
-            stopCamera(); mainApp.classList.add('hidden'); loginOverlay.classList.remove('hidden');
+            await stopCamera();
+            mainApp.classList.add('hidden'); loginOverlay.classList.remove('hidden');
             document.getElementById('loginForm').reset(); showToast('Berhasil keluar.');
         }
 
@@ -1854,6 +1859,15 @@
 
             showToast('Halaman kamera dibuka. Izinkan akses kamera jika diminta.', 'fa-camera text-emerald-400');
         }
+
+        // Menutup jendela kamera tidak mengubah token maupun halaman login admin.
+        window.addEventListener('focus', function() {
+            if (state.cameraWindow && state.cameraWindow.closed) {
+                state.cameraWindow = null;
+                state.cameraNonce = null;
+                showToast('Kamera ditutup. Anda tetap berada di dashboard admin.', 'fa-camera text-emerald-400');
+            }
+        });
 
         // Hanya menerima hasil dari jendela kamera yang dibuka aplikasi dan nonce yang cocok.
         window.addEventListener('message', function(event) {
