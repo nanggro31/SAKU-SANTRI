@@ -286,6 +286,136 @@
             *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
         }
 
+
+
+        /* ============================================================
+           STUDENT-PORTAL STYLE — lapisan visual baru untuk admin SAKU SANTRI
+           Seluruh ID, handler, dan logika bisnis yang sudah ada dipertahankan.
+        ============================================================ */
+        :root {
+            --portal-green:#0E6B4F;
+            --portal-green-dark:#084b39;
+            --portal-gold:#D4AF37;
+            --portal-ink:#172b3a;
+            --portal-muted:#718096;
+            --portal-bg:#f5f7fb;
+        }
+        body { background:var(--portal-bg); }
+        #mainApp, #mainApp main { background:var(--portal-bg) !important; }
+        #mainApp aside {
+            background:linear-gradient(180deg,#103f35 0%,#082f29 100%) !important;
+            box-shadow:8px 0 28px rgba(8,47,41,.12);
+        }
+        #mainApp aside > div:first-child > div:first-child {
+            background:linear-gradient(135deg,#0e8060,#0b5944) !important;
+        }
+        #mainApp aside nav { padding:14px 12px !important; }
+        #mainApp aside .nav-item {
+            min-height:48px; border-radius:14px !important; padding:11px 13px !important;
+            color:#d7eee6 !important; font-size:13px; white-space:normal; overflow-wrap:anywhere;
+        }
+        #mainApp aside .nav-item:hover { background:rgba(255,255,255,.10) !important; }
+        #mainApp aside .nav-item.bg-slate-800 {
+            color:#fff !important; background:linear-gradient(100deg,#15956d,#0e6b4f) !important;
+            box-shadow:0 7px 18px rgba(0,0,0,.16);
+        }
+        #mainApp aside .nav-item i { flex:0 0 21px; text-align:center; }
+        #mainApp header.glass-header {
+            min-height:112px; padding:20px 25px !important; color:#fff !important;
+            background:linear-gradient(115deg,#164b9a 0%,#2559b8 48%,#5144a8 100%) !important;
+            border:0 !important; border-radius:0 0 26px 26px;
+            box-shadow:0 10px 26px rgba(37,77,160,.18) !important;
+        }
+        #mainApp header #pageTitle { color:#fff !important; font-size:clamp(18px,2vw,24px); font-weight:800; }
+        #mainApp header #currentDateDisplay {
+            color:#fff !important; background:rgba(255,255,255,.13) !important;
+            border-color:rgba(255,255,255,.22) !important;
+        }
+        #mainApp header button[onclick="refreshData()"] {
+            min-height:42px; border-radius:13px !important; background:#fff !important;
+            color:#214b9c !important; box-shadow:0 5px 14px rgba(0,0,0,.12);
+        }
+        #mainApp main > div.p-4 { padding:22px clamp(14px,2.4vw,30px) 34px !important; }
+        #mainApp .tab-content > div.bg-white,
+        #mainApp .tab-content .bg-white {
+            border:1px solid #e8edf5 !important; box-shadow:0 6px 20px rgba(32,54,92,.055) !important;
+        }
+        #mainApp .tab-content .rounded-2xl { border-radius:20px !important; }
+        #mainApp .tab-content input, #mainApp .tab-content select, #mainApp .tab-content textarea {
+            border-radius:12px; min-width:0;
+        }
+        #mainApp .tab-content button { touch-action:manipulation; }
+        .portal-quick-section { margin-bottom:22px; }
+        .portal-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:4px 2px 14px; }
+        .portal-section-heading h3 { color:#172b3a; font-size:18px; font-weight:800; letter-spacing:-.35px; }
+        .portal-section-heading span { color:#64748b; font-size:12px; font-weight:600; }
+        .portal-quick-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+        .portal-quick-card {
+            display:flex; align-items:center; gap:13px; width:100%; min-width:0; min-height:102px;
+            padding:16px; text-align:left; border:1px solid rgba(222,231,243,.9); border-radius:20px;
+            background:var(--tile-bg,#fff); color:#172b3a; box-shadow:0 5px 14px rgba(31,54,94,.055);
+            transition:transform .18s ease,box-shadow .18s ease;
+        }
+        .portal-quick-card:hover { transform:translateY(-2px); box-shadow:0 9px 20px rgba(31,54,94,.10); }
+        .portal-quick-icon {
+            display:flex; align-items:center; justify-content:center; flex:0 0 48px; width:48px; height:48px;
+            border-radius:50%; color:#fff; background:var(--tile-color,#0e6b4f); font-size:20px;
+        }
+        .portal-quick-copy { display:block; min-width:0; }
+        .portal-quick-copy strong { display:block; font-size:13px; line-height:1.35; font-weight:800; overflow-wrap:anywhere; }
+        .portal-quick-copy small { display:block; margin-top:4px; color:#64748b; font-size:11px; line-height:1.35; }
+        .portal-quick-arrow { margin-left:auto; flex:0 0 auto; color:#94a3b8; font-size:13px; }
+        .mobile-bottom-nav { display:none; }
+        @media (max-width:767px) {
+            body { min-height:100dvh; padding-bottom:calc(68px + env(safe-area-inset-bottom)); }
+            #mainApp { min-height:100dvh; }
+            #mainApp aside { z-index:80; }
+            #mainApp header.glass-header {
+                min-height:108px; padding:15px 14px 22px !important; border-radius:0 0 25px 25px;
+                align-items:flex-start !important;
+            }
+            #mainApp header .flex.items-center.gap-3 { gap:10px !important; }
+            #mainApp header #pageTitle { max-width:52vw; white-space:normal; line-height:1.25; font-size:17px; }
+            #mainApp header .flex.items-center.gap-4 { gap:6px !important; align-items:flex-start; }
+            #mainApp header button[onclick="refreshData()"] { padding:9px 10px !important; min-height:38px; font-size:10px; }
+            #mainApp main > div.p-4 { padding:17px 13px 26px !important; }
+            #mainApp .tab-content { min-width:0; width:100%; }
+            #mainApp .tab-content .grid { min-width:0; }
+            #mainApp .tab-content .p-5, #mainApp .tab-content .p-6 { padding:15px !important; }
+            #mainApp .tab-content .p-8 { padding:18px !important; }
+            .portal-quick-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+            .portal-quick-card { min-height:91px; padding:12px 10px; gap:9px; border-radius:17px; }
+            .portal-quick-icon { flex-basis:40px; width:40px; height:40px; font-size:17px; }
+            .portal-quick-copy strong { font-size:11px; }
+            .portal-quick-copy small { font-size:9px; }
+            .portal-quick-arrow { display:none; }
+            .mobile-bottom-nav {
+                display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px;
+                position:fixed; z-index:70; left:0; right:0; bottom:0;
+                padding:8px 5px calc(8px + env(safe-area-inset-bottom));
+                background:rgba(255,255,255,.97); border-top:1px solid #e7ecf4;
+                box-shadow:0 -7px 22px rgba(24,43,78,.09); backdrop-filter:blur(14px);
+            }
+            .mobile-bottom-nav button {
+                display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+                min-width:0; min-height:48px; padding:4px 2px; border:0; border-radius:12px;
+                color:#8792a5; background:transparent; font-size:9px; font-weight:700;
+            }
+            .mobile-bottom-nav button i { font-size:18px; }
+            .mobile-bottom-nav button.active { color:#0e6b4f; background:#eaf6f1; }
+            #mainApp table { min-width:620px; }
+            #mainApp .overflow-x-auto { max-width:100%; overflow-x:auto; }
+            #mainApp .tab-content .flex.flex-col.md\\:flex-row { align-items:stretch; }
+            #toast { bottom:calc(76px + env(safe-area-inset-bottom)) !important; left:12px; right:12px; }
+        }
+        @media (max-width:380px) {
+            .portal-quick-grid { gap:8px; }
+            .portal-quick-card { padding:10px 8px; gap:7px; }
+            .portal-quick-icon { flex-basis:36px; width:36px; height:36px; font-size:15px; }
+            .portal-quick-copy strong { font-size:10px; }
+            .portal-quick-copy small { font-size:8px; }
+        }
+
     </style>
 </head>
 <body class="h-full flex flex-col antialiased text-slate-800">
@@ -488,6 +618,26 @@
                                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Transaksi Today</p>
                                 <h3 id="statTransaksiToday" class="text-2xl font-extrabold text-slate-800">0</h3>
                             </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Akses cepat bergaya aplikasi Android; semua kartu terhubung ke menu asli -->
+                    <div class="portal-quick-section">
+                        <div class="portal-section-heading">
+                            <h3>Akses Cepat</h3>
+                            <span>Semua fitur SAKU SANTRI</span>
+                        </div>
+                        <div class="portal-quick-grid">
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#f0edff;--tile-color:#6246c7" onclick="switchTab('santri')"><span class="portal-quick-icon"><i class="fa-solid fa-users"></i></span><span class="portal-quick-copy"><strong>Data Santri</strong><small>Kelola data & saldo</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#fff2e8;--tile-color:#e98518" onclick="switchTab('setor')"><span class="portal-quick-icon"><i class="fa-solid fa-circle-arrow-down"></i></span><span class="portal-quick-copy"><strong>Setor Uang</strong><small>Tambah tabungan</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#eaf2ff;--tile-color:#3478dc" onclick="switchTab('tarik')"><span class="portal-quick-icon"><i class="fa-solid fa-qrcode"></i></span><span class="portal-quick-copy"><strong>Scan QR</strong><small>Setor & penarikan</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#e8f7f1;--tile-color:#15966d" onclick="switchTab('pinjaman')"><span class="portal-quick-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="portal-quick-copy"><strong>Pinjaman</strong><small>Pinjaman & pelunasan</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#fff0f5;--tile-color:#df5480" onclick="switchTab('riwayat')"><span class="portal-quick-icon"><i class="fa-solid fa-clock-rotate-left"></i></span><span class="portal-quick-copy"><strong>Riwayat</strong><small>Daftar transaksi</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#fff8df;--tile-color:#d9a514" onclick="switchTab('laporan')"><span class="portal-quick-icon"><i class="fa-solid fa-chart-column"></i></span><span class="portal-quick-copy"><strong>Laporan</strong><small>Rekap keuangan</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#edf3ff;--tile-color:#3778d7" onclick="switchTab('kartu')"><span class="portal-quick-icon"><i class="fa-solid fa-id-card"></i></span><span class="portal-quick-copy"><strong>Kartu Santri</strong><small>Cetak kartu tabungan</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#e8f7f1;--tile-color:#21965d" onclick="switchTab('pengaturan')"><span class="portal-quick-icon"><i class="fa-solid fa-gear"></i></span><span class="portal-quick-copy"><strong>Pengaturan</strong><small>Identitas & keamanan</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
+                            <button type="button" class="portal-quick-card" style="--tile-bg:#f1edff;--tile-color:#6948c8" onclick="refreshData()"><span class="portal-quick-icon"><i class="fa-solid fa-rotate"></i></span><span class="portal-quick-copy"><strong>Sinkronisasi</strong><small>Perbarui data terbaru</small></span><i class="fa-solid fa-chevron-right portal-quick-arrow"></i></button>
                         </div>
                     </div>
 
@@ -1023,6 +1173,15 @@
 
             </div>
         </main>
+
+        <!-- Navigasi bawah khusus HP: pintasan ke menu yang paling sering digunakan -->
+        <nav class="mobile-bottom-nav no-print" aria-label="Navigasi utama">
+            <button type="button" data-tab="dashboard" class="active" onclick="switchTab('dashboard')"><i class="fa-solid fa-house"></i><span>Beranda</span></button>
+            <button type="button" data-tab="santri" onclick="switchTab('santri')"><i class="fa-solid fa-users"></i><span>Santri</span></button>
+            <button type="button" data-tab="setor" onclick="switchTab('setor')"><i class="fa-solid fa-circle-plus"></i><span>Setor</span></button>
+            <button type="button" data-tab="tarik" onclick="switchTab('tarik')"><i class="fa-solid fa-qrcode"></i><span>Scan QR</span></button>
+            <button type="button" onclick="toggleMobileNav()"><i class="fa-solid fa-grip"></i><span>Lainnya</span></button>
+        </nav>
     </div>
 
     <!-- MODAL TAMBAH/EDIT SANTRI -->
@@ -1278,6 +1437,9 @@
 
         function switchTab(tabId) {
             closeMobileNav();
+            document.querySelectorAll('.mobile-bottom-nav [data-tab]').forEach(el => {
+                el.classList.toggle('active', el.getAttribute('data-tab') === tabId);
+            });
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('bg-slate-800', 'text-white', 'font-bold');
