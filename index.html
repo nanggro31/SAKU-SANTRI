@@ -128,6 +128,12 @@
             body.print-kartu .no-print { display: none !important; }
             body.print-kartu #kartuPassbook { display: none !important; }
         }
+        /* Video preview dari scanner QR inline */
+        #reader { width:100%; min-height:100%; }
+        #reader video { width:100% !important; height:100% !important; object-fit:cover !important; border-radius:12px; }
+        #reader__scan_region { min-height:100%; }
+        #reader__dashboard_section_csr button { border-radius:10px; }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -846,7 +852,7 @@
                                 <div id="reader" class="w-full h-full"></div>
                             </div>
 
-                            <!-- CARI KODE INI DI HTML (SEKITAR TAB 4): -->
+                            <!-- Kontrol kamera langsung di halaman aplikasi utama -->
 <div class="flex gap-3 mt-4 w-full max-w-sm">
     <button onclick="startCamera()" class="flex-1 py-2.5 bg-emerald text-white rounded-xl font-bold text-xs shadow hover:bg-emerald-dark transition flex items-center justify-center gap-2">
         <i class="fa-solid fa-camera"></i> Buka Kamera
@@ -856,7 +862,7 @@
     </button>
 </div>
 
-<!-- TEMPELKAN KODE BARU TEPAT DI SINI (DI BAWAH KODE DI ATAS): -->
+<!-- Alternatif pemindaian dari foto tetap tersedia -->
 <input type="file" id="qrFileInput" accept="image/*" capture="environment" class="hidden" onchange="scanQrFromFile(event)">
 
 <button type="button" onclick="document.getElementById('qrFileInput').click()" class="w-full max-w-sm mt-3 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs shadow hover:bg-blue-700 transition flex items-center justify-center gap-2">
@@ -1446,7 +1452,7 @@
         const state = {
             adminToken: null, adminName: 'Admin', santriList: [], transactions: [], loans: [],
             selectedSantriForTarik: null, pendingSetorRequestId: null, pendingQrTxRequestId: null,
-            html5QrCode: null, cameraStarting: false, cameraWindow: null, cameraNonce: null,
+            html5QrCode: null, cameraStarting: false, cameraGeneration: 0,
             qrProcessing: false, chartInstance: null, activePayLoanId: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
         };
 
@@ -1911,118 +1917,165 @@
             finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-circle text-lg"></i> Simpan Setoran'; }
         }
 
-        // SCAN QR & TARIK UANG LOGIC (Kamera Diperbaiki Untuk Google Apps Script Iframe)
-        // Kamera dijalankan pada halaman GitHub Pages HTTPS terpisah untuk menghindari
-        // pembatasan izin kamera pada iframe Google Apps Script.
+        // SCANNER QR DALAM HALAMAN UTAMA.
+        // Halaman utama harus dibuka melalui HTTPS (misalnya GitHub Pages).
+        // Kamera tidak lagi membuka tab, popup, atau repository scanner terpisah.
+        function getCameraErrorMessage(error) {
+            const name = error && error.name ? error.name : '';
+            const message = String(error && error.message ? error.message : error || '');
+
+            if (!window.isSecureContext) {
+                return 'Kamera membutuhkan koneksi HTTPS. Buka aplikasi melalui alamat GitHub Pages HTTPS.';
+            }
+            if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || /permission denied|not allowed/i.test(message)) {
+                return 'Izin kamera ditolak. Tekan ikon gembok/pengaturan situs di browser, izinkan Kamera, lalu coba kembali.';
+            }
+            if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+                return 'Kamera tidak ditemukan pada perangkat ini.';
+            }
+            if (name === 'NotReadableError' || name === 'TrackStartError') {
+                return 'Kamera sedang digunakan aplikasi lain atau tidak dapat dibuka. Tutup aplikasi kamera lain lalu coba kembali.';
+            }
+            if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+                return 'Kamera belakang tidak tersedia. Periksa kamera perangkat atau coba browser Chrome terbaru.';
+            }
+            if (/secure context|https/i.test(message)) {
+                return 'Akses kamera memerlukan HTTPS dan browser yang mendukung kamera.';
+            }
+            return 'Kamera gagal dibuka. Pastikan menggunakan Chrome Android, koneksi HTTPS, dan izin kamera sudah diberikan. ' + message;
+        }
+
         async function startCamera() {
-            const cameraUrlBase = 'https://nurhaliza7035-lgtm.github.io/nabung/';
-            if (!cameraUrlBase || cameraUrlBase.includes('GANTI_DENGAN_URL')) {
-                alert('Konfigurasikan URL kamera GitHub Pages terlebih dahulu pada variabel cameraUrlBase di fungsi startCamera().');
+            if (state.cameraStarting) return;
+            if (state.html5QrCode && state.html5QrCode.isScanning) {
+                showToast('Kamera sudah aktif.', 'fa-camera text-emerald-400');
+                return;
+            }
+            if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Kamera tidak dapat diakses. Pastikan aplikasi dibuka melalui HTTPS dan gunakan Chrome Android terbaru.');
+                return;
+            }
+            if (typeof Html5Qrcode === 'undefined') {
+                alert('Library scanner QR belum berhasil dimuat. Periksa koneksi internet lalu muat ulang aplikasi.');
                 return;
             }
 
-            if (state.cameraWindow && !state.cameraWindow.closed) {
-                state.cameraWindow.focus();
+            const reader = document.getElementById('reader');
+            if (!reader) {
+                alert('Area kamera tidak ditemukan. Muat ulang halaman aplikasi.');
                 return;
             }
 
-            const nonce = (window.crypto && crypto.randomUUID)
-                ? crypto.randomUUID()
-                : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+            const generation = ++state.cameraGeneration;
+            state.cameraStarting = true;
 
-            state.cameraNonce = nonce;
-            const url = cameraUrlBase + '?nonce=' + encodeURIComponent(nonce);
-            state.cameraWindow = window.open(url, 'SAKU_SANTRICamera', 'popup,width=520,height=760,resizable=yes,scrollbars=yes');
+            let scanner = null;
+            try {
+                reader.innerHTML = '';
+                scanner = new Html5Qrcode('reader', { verbose: false });
+                state.html5QrCode = scanner;
 
-            if (!state.cameraWindow) {
-                alert('Halaman kamera diblokir oleh browser. Izinkan pop-up untuk situs aplikasi ini, lalu klik Buka Kamera kembali.');
-                return;
+                await scanner.start(
+                    { facingMode: 'environment' },
+                    {
+                        fps: 10,
+                        qrbox: function(viewfinderWidth, viewfinderHeight) {
+                            const edge = Math.max(180, Math.min(280, Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.78)));
+                            return { width: edge, height: edge };
+                        },
+                        aspectRatio: 1.0,
+                        disableFlip: false
+                    },
+                    async function(decodedText) {
+                        if (state.qrProcessing || generation !== state.cameraGeneration) return;
+                        state.qrProcessing = true;
+                        try {
+                            await stopCamera();
+                            processQrCodeResult(String(decodedText || '').trim());
+                            showToast('QR Code berhasil dipindai.', 'fa-qrcode text-emerald-400');
+                        } finally {
+                            state.qrProcessing = false;
+                        }
+                    },
+                    function() {
+                        // Tidak menampilkan error tiap frame karena itu normal saat QR belum terdeteksi.
+                    }
+                );
+
+                // Jika pengguna menutup kamera ketika proses start masih berlangsung,
+                // hentikan stream yang baru saja berhasil dibuka.
+                if (generation !== state.cameraGeneration) {
+                    try { if (scanner.isScanning) await scanner.stop(); } catch (_) {}
+                    try { await scanner.clear(); } catch (_) {}
+                    if (state.html5QrCode === scanner) state.html5QrCode = null;
+                    return;
+                }
+
+                showToast('Kamera aktif. Arahkan kamera belakang ke QR Code santri.', 'fa-camera text-emerald-400');
+            } catch (error) {
+                if (state.html5QrCode === scanner) state.html5QrCode = null;
+                if (scanner) {
+                    try { if (scanner.isScanning) await scanner.stop(); } catch (_) {}
+                    try { await scanner.clear(); } catch (_) {}
+                }
+                if (generation === state.cameraGeneration) {
+                    alert(getCameraErrorMessage(error));
+                }
+                console.error('Gagal membuka kamera QR:', error);
+            } finally {
+                if (generation === state.cameraGeneration) state.cameraStarting = false;
+            }
+        }
+
+        async function stopCamera() {
+            // Naikkan nomor sesi agar callback dari kamera lama diabaikan.
+            state.cameraGeneration++;
+            state.cameraStarting = false;
+
+            const scanner = state.html5QrCode;
+            state.html5QrCode = null;
+
+            if (scanner) {
+                try {
+                    if (scanner.isScanning) await scanner.stop();
+                } catch (error) {
+                    console.warn('Peringatan saat menghentikan kamera:', error);
+                }
+                try {
+                    await scanner.clear();
+                } catch (error) {
+                    console.warn('Peringatan saat membersihkan scanner:', error);
+                }
             }
 
-            showToast('Halaman kamera dibuka. Izinkan akses kamera jika diminta.', 'fa-camera text-emerald-400');
+            const reader = document.getElementById('reader');
+            if (reader) reader.innerHTML = '';
         }
 
-        // Menutup jendela kamera tidak mengubah token maupun halaman login admin.
-        window.addEventListener('focus', function() {
-            if (state.cameraWindow && state.cameraWindow.closed) {
-                state.cameraWindow = null;
-                state.cameraNonce = null;
-                showToast('Kamera ditutup. Anda tetap berada di dashboard admin.', 'fa-camera text-emerald-400');
+        async function scanQrFromFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            let fileScanner = null;
+            try {
+                await stopCamera();
+                if (typeof Html5Qrcode === 'undefined') {
+                    throw new Error('Library pemindai QR belum dimuat.');
+                }
+                fileScanner = new Html5Qrcode('reader');
+                const decodedText = await fileScanner.scanFile(file, true);
+                processQrCodeResult(String(decodedText || '').trim());
+                showToast('QR Code berhasil dibaca!');
+            } catch (err) {
+                alert('QR Code tidak terdeteksi pada gambar. Pastikan foto QR terlihat jelas, terang, dan fokus.');
+                console.error('Gagal scan file QR:', err);
+            } finally {
+                if (fileScanner) {
+                    try { await fileScanner.clear(); } catch (clearErr) { console.warn('Gagal membersihkan pemindai gambar:', clearErr); }
+                }
+                event.target.value = '';
             }
-        });
-
-        // Hanya menerima hasil dari jendela kamera yang dibuka aplikasi dan nonce yang cocok.
-        window.addEventListener('message', function(event) {
-            if (!state.cameraWindow || event.source !== state.cameraWindow) return;
-            if (!event.data || event.data.type !== 'SANTRI_MENABUNG_QR_RESULT') return;
-            if (event.data.nonce !== state.cameraNonce) return;
-
-            const qrText = String(event.data.value || '').trim();
-            state.cameraNonce = null;
-            state.cameraWindow = null;
-
-            if (!qrText) {
-                showToast('Tidak ada hasil QR yang diterima.', 'fa-circle-exclamation text-amber-400');
-                return;
-            }
-            processQrCodeResult(qrText);
-            showToast('Hasil QR diterima dari kamera.');
-        });
-
-        // CARI FUNGSI INI DI DALAM TAG <script>:
-async function stopCamera() {
-    if (state.cameraWindow && !state.cameraWindow.closed) {
-        try { state.cameraWindow.postMessage({ type: 'SANTRI_MENABUNG_CAMERA_STOP', nonce: state.cameraNonce }, '*'); } catch (_) {}
-        try { state.cameraWindow.close(); } catch (_) {}
-    }
-    state.cameraWindow = null;
-    state.cameraNonce = null;
-
-    const scanner = state.html5QrCode;
-    if (!scanner) return;
-
-    state.html5QrCode = null;
-
-    try {
-        if (scanner.isScanning) {
-            await scanner.stop();
         }
-    } catch (error) {
-        console.warn('Peringatan saat menghentikan kamera:', error);
-    }
-
-    try {
-        await scanner.clear();
-    } catch (error) {
-        console.warn('Peringatan saat membersihkan scanner:', error);
-    }
-}
-
-// TEMPELKAN KODE BARU TEPAT DI BAWAH FUNGSI stopCamera():
-async function scanQrFromFile(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-
-    let fileScanner = null;
-    try {
-        await stopCamera();
-        if (typeof Html5Qrcode === 'undefined') {
-            throw new Error('Library pemindai QR belum dimuat.');
-        }
-        fileScanner = new Html5Qrcode('reader');
-        const decodedText = await fileScanner.scanFile(file, true);
-        processQrCodeResult(String(decodedText || '').trim());
-        showToast('QR Code berhasil dibaca!');
-    } catch (err) {
-        alert('QR Code tidak terdeteksi pada gambar. Pastikan foto QR terlihat jelas, terang, dan fokus.');
-        console.error('Gagal scan file QR:', err);
-    } finally {
-        if (fileScanner) {
-            try { await fileScanner.clear(); } catch (clearErr) { console.warn('Gagal membersihkan pemindai gambar:', clearErr); }
-        }
-        event.target.value = '';
-    }
-}
 
         function cariSantriByRekening() {
             const rek = document.getElementById('manualRekInput').value.trim();
