@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANTRI MENABUNG - Dayah Babul Maghfirah</title>
+    <title>SAKU SANTRI - Dayah Babul Maghfirah</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -32,6 +32,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js for generating QR Codes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- HTML5 QR Code Scanner for Web Camera -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Chart.js for Financial Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -129,7 +131,7 @@
     
 
         /* ============================================================
-           REDESAIN NEOMORPHIC + RESPONSIVE - SANTRI MENABUNG
+           REDESAIN NEOMORPHIC + RESPONSIVE - SAKU SANTRI
            Hanya lapisan tampilan; ID dan fungsi aplikasi tetap dipakai.
         ============================================================ */
         :root {
@@ -243,10 +245,13 @@
             body { min-height:100dvh; }
             #mainApp { display:flex; flex-direction:column !important; min-height:100dvh; }
             #mainApp aside {
+                display:flex; flex-direction:column; justify-content:flex-start !important;
                 position:fixed; z-index:60; inset:0 auto 0 0; width:min(84vw,310px) !important; min-width:0 !important;
-                height:100dvh; overflow-y:auto; transform:translateX(-105%); transition:transform .28s ease;
+                height:100dvh; max-height:100dvh; overflow-y:auto; overscroll-behavior:contain; padding-bottom:env(safe-area-inset-bottom); transform:translateX(-105%); transition:transform .28s ease;
                 box-shadow:18px 0 40px rgba(12,25,60,.25);
             }
+            #mainApp aside > div:first-child { flex:0 0 auto; }
+            #mainApp aside > div:last-child { flex:0 0 auto; }
             body.mobile-nav-open #mainApp aside { transform:translateX(0); }
             .mobile-nav-backdrop { position:fixed; z-index:55; inset:0; background:rgba(10,20,45,.48); backdrop-filter:blur(2px); }
             body.mobile-nav-open .mobile-nav-backdrop { display:block; }
@@ -281,50 +286,6 @@
             *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
         }
 
-        /* ANDROID APP SHELL: bottom navigation menampilkan seluruh 8 menu */
-        #mainApp { display:flex; flex-direction:column !important; min-height:100dvh; background:#f3f7f5 !important; }
-        #mainApp aside { display:none !important; }
-        #mainApp main { width:100%; min-width:0; min-height:100dvh; height:auto !important; overflow:visible !important; padding-bottom:112px; background:#f3f7f5 !important; }
-        #mainApp header.glass-header { position:sticky; top:0; z-index:30; min-height:66px; padding:12px 16px !important; background:rgba(255,255,255,.96) !important; border-bottom:1px solid #e5eee9; box-shadow:0 3px 14px rgba(15,65,48,.06) !important; }
-        #mainApp header #pageTitle { color:#124b39 !important; font-size:17px !important; font-weight:800; }
-        #mainApp header .mobile-menu-btn { display:none !important; }
-        #mainApp header button[onclick="refreshData()"] { background:#0e6b4f !important; color:#fff !important; border-radius:13px !important; min-height:40px; padding:9px 12px !important; }
-        #mainApp header .flex.items-center.gap-4 { gap:8px !important; }
-        #mainApp main > div.p-4 { padding:14px !important; padding-bottom:18px !important; }
-        #mainApp .tab-content { min-width:0; width:100%; }
-        #mainApp .tab-content .grid { min-width:0; }
-        #mainApp .tab-content .overflow-x-auto { width:100%; }
-        #mainApp .tab-content .bg-white { border-radius:18px !important; }
-        #mainApp .tab-content input, #mainApp .tab-content select, #mainApp .tab-content textarea { font-size:14px; }
-        .android-bottom-nav { position:fixed; z-index:70; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-template-rows:repeat(2,49px); gap:3px; padding:7px 8px calc(7px + env(safe-area-inset-bottom)); background:rgba(255,255,255,.98); border-top:1px solid #dce9e2; box-shadow:0 -7px 24px rgba(15,65,48,.10); backdrop-filter:blur(16px); }
-        .android-bottom-nav .nav-item { min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:3px 2px; border-radius:12px; color:#71837a; background:transparent; font-size:9px; font-weight:700; line-height:1.05; text-align:center; white-space:normal; }
-        .android-bottom-nav .nav-item i { display:block; font-size:16px; line-height:18px; color:inherit !important; }
-        .android-bottom-nav .nav-item.active { color:#0e6b4f; background:#e8f5ee; }
-        .android-bottom-nav .nav-item span { display:block; max-width:100%; overflow-wrap:anywhere; }
-        #loginOverlay { background:radial-gradient(circle at 12% 8%,rgba(212,175,55,.16),transparent 30%),linear-gradient(150deg,#073f30,#0e6b4f 58%,#123f33) !important; padding:20px !important; }
-        #loginOverlay::before,#loginOverlay::after { border-color:rgba(255,255,255,.12); box-shadow:none; }
-        #loginOverlay > div { width:min(100%,430px) !important; max-width:430px !important; padding:30px 25px !important; border:1px solid rgba(255,255,255,.8) !important; border-top:5px solid #d4af37 !important; border-radius:28px !important; background:#fff !important; box-shadow:0 25px 70px rgba(0,0,0,.22) !important; }
-        #loginOverlay > div > div:first-child > div { width:104px !important; height:104px !important; padding:14px; border-radius:24px; background:#eff7f2; box-shadow:none; }
-        #loginOverlay h2 { color:#104b38 !important; font-size:27px !important; letter-spacing:-.7px !important; }
-        #loginOverlay > div > div:first-child p { color:#708178 !important; letter-spacing:.3px; }
-        #loginOverlay form input { min-height:54px; border-radius:15px !important; background:#f6faf7 !important; box-shadow:none !important; border:1px solid #dce9e1 !important; }
-        #btnLogin { min-height:55px; border-radius:15px !important; background:linear-gradient(110deg,#0e6b4f,#114d3d) !important; box-shadow:0 8px 18px rgba(14,107,79,.2) !important; font-size:15px; }
-        #reader { width:100%; min-height:250px; display:flex; align-items:center; justify-content:center; }
-        #qrVideo { width:100%; height:100%; min-height:250px; object-fit:cover; border-radius:14px; }
-        @media (max-width:420px) {
-            #mainApp header #pageTitle { max-width:55vw; font-size:15px !important; }
-            #mainApp header button[onclick="refreshData()"] { font-size:10px; padding:8px 9px !important; }
-            #mainApp main > div.p-4 { padding:10px !important; }
-            .android-bottom-nav { grid-template-rows:47px 47px; gap:2px; padding-left:5px; padding-right:5px; }
-            .android-bottom-nav .nav-item { font-size:8px; }
-            .android-bottom-nav .nav-item i { font-size:15px; }
-        }
-        @media (min-width:768px) {
-            #mainApp { max-width:100%; }
-            #mainApp main { max-width:1200px; margin:0 auto; }
-            .android-bottom-nav { left:50%; right:auto; transform:translateX(-50%); width:min(100%,900px); border:1px solid #dce9e2; border-bottom:0; border-radius:18px 18px 0 0; }
-        }
-
     </style>
 </head>
 <body class="h-full flex flex-col antialiased text-slate-800">
@@ -336,11 +297,11 @@
                 <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
     <img
         src="https://cdn.phototourl.com/member/2026-10-14-3d7b029b-1d76-4643-8716-33369ded29c5.png"
-        alt="Logo Santri Menabung"
+        alt="Logo SAKU SANTRI"
         class="w-full h-full object-contain"
     >
 </div>
-                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">SANTRI MENABUNG</h2>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">SAKU SANTRI</h2>
                 <p class="text-sm text-slate-500 mt-1">Sistem Tabungan Digital Dayah Babul Maghfirah</p>
             </div>
 
@@ -398,7 +359,7 @@
 </div>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-white leading-tight tracking-wide text-base">SANTRI MENABUNG</h1>
+                        <h1 class="font-extrabold text-white leading-tight tracking-wide text-base">SAKU SANTRI</h1>
                         <p class="text-[11px] text-emerald-soft font-light">Dayah Babul Maghfirah</p>
                     </div>
                 </div>
@@ -416,6 +377,9 @@
                     </button>
                     <button onclick="switchTab('tarik')" id="nav-tarik" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
                         <i class="fa-solid fa-qrcode w-5 text-gold"></i> Setoran &amp; Penarikan (Scan QR)
+                    </button>
+                    <button onclick="switchTab('pinjaman')" id="nav-pinjaman" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-hand-holding-dollar w-5 text-amber-300"></i> Pinjaman
                     </button>
                     <button onclick="switchTab('riwayat')" id="nav-riwayat" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
                         <i class="fa-solid fa-clock-rotate-left w-5 text-blue-400"></i> Riwayat Transaksi
@@ -449,18 +413,6 @@
             </div>
         </aside>
 
-        <!-- ANDROID BOTTOM NAVIGATION: 8 menu terlihat sekaligus dalam 2 baris -->
-        <nav class="android-bottom-nav no-print" aria-label="Navigasi utama">
-            <button type="button" class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
-            <button type="button" class="nav-item" data-tab="santri" onclick="switchTab('santri')"><i class="fa-solid fa-users"></i><span>Data Santri</span></button>
-            <button type="button" class="nav-item" data-tab="setor" onclick="switchTab('setor')"><i class="fa-solid fa-circle-arrow-down"></i><span>Setor Uang</span></button>
-            <button type="button" class="nav-item" data-tab="tarik" onclick="switchTab('tarik')"><i class="fa-solid fa-qrcode"></i><span>Scan &amp; Tarik</span></button>
-            <button type="button" class="nav-item" data-tab="riwayat" onclick="switchTab('riwayat')"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat</span></button>
-            <button type="button" class="nav-item" data-tab="laporan" onclick="switchTab('laporan')"><i class="fa-solid fa-file-invoice-dollar"></i><span>Laporan</span></button>
-            <button type="button" class="nav-item" data-tab="kartu" onclick="switchTab('kartu')"><i class="fa-solid fa-id-card"></i><span>Kartu</span></button>
-            <button type="button" class="nav-item" data-tab="pengaturan" onclick="switchTab('pengaturan')"><i class="fa-solid fa-gear"></i><span>Pengaturan</span></button>
-        </nav>
-
         <!-- MAIN CONTENT CONTAINER -->
         <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
             <!-- Top Navbar Mobile / Header Desktop -->
@@ -477,9 +429,6 @@
                     </span>
                     <button onclick="refreshData()" class="px-3 py-1.5 bg-gold hover:bg-gold-dark text-slate-900 rounded-lg font-bold flex items-center gap-2 shadow-sm transition">
                         <i class="fa-solid fa-rotate"></i> Sync Data
-                    </button>
-                    <button onclick="handleLogout()" title="Keluar dari aplikasi" aria-label="Keluar" class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
-                        <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
                 </div>
             </header>
@@ -667,7 +616,7 @@
                     <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200/80 shadow-md">
                         <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
                             <div>
-                                <h3 class="text-xl font-bold text-slate-800">Formulir Penyimpanan Uang</h3>
+                                <h3 class="text-xl font-bold text-slate-800">Formulir Setoran Uang</h3>
                                 <p class="text-xs text-slate-500 mt-1">Setor uang tabungan santri secara resmi</p>
                             </div>
                             <span class="px-3 py-1 bg-green-100 text-green-700 font-bold text-xs rounded-full">SETOR</span>
@@ -709,13 +658,8 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-2">Keterangan / Catatan</label>
-                                <input type="text" id="setorKeterangan" class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none" placeholder="Contoh: Titipan Wali / Saku Bulanan">
-                            </div>
-
                             <button type="submit" id="btnSubmitSetor" class="w-full py-3.5 bg-emerald hover:bg-emerald-dark text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-check-circle text-lg"></i> Confirm & Simpan Penyimpanan
+                                <i class="fa-solid fa-check-circle text-lg"></i> Simpan Setoran
                             </button>
                         </form>
                     </div>
@@ -813,9 +757,17 @@
                                         <input type="text" id="tarikPenerima" required class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none" placeholder="Nama Santri / Wali">
                                     </div>
 
-                                    <div>
-                                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Keterangan</label>
-                                        <input type="text" id="tarikKeterangan" class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none" placeholder="Contoh: Beli Kitab / Uang Saku">
+                                    <div id="tarikKeteranganWrap">
+                                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Keterangan Penarikan</label>
+                                        <select id="tarikKeterangan" class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none">
+                                            <option value="">Pilih keterangan penarikan</option>
+                                            <option>Jajan</option>
+                                            <option>Beli perlengkapan mandi &amp; cuci</option>
+                                            <option>Beli kitab &amp; alat tulis</option>
+                                            <option>Beli obat-obatan</option>
+                                            <option>Iuran kegiatan / ongkos pulang</option>
+                                            <option>Tarik semuanya</option>
+                                        </select>
                                     </div>
 
                                     <button type="submit" id="btnSubmitTarik" class="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
@@ -833,6 +785,29 @@
                 </section>
 
                 <!-- TAB 5: RIWAYAT TRANSAKSI -->
+                <section id="tab-pinjaman" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-lg mb-4">Catat Pinjaman</h3>
+                            <form id="loanForm" onsubmit="submitLoan(event)" class="space-y-3">
+                                <div><label class="block text-xs font-bold mb-1">Peminjam</label><select id="loanBorrowerType" onchange="onLoanBorrowerTypeChange()" class="w-full p-3 border rounded-xl"><option value="SANTRI">Santri</option><option value="STAFF">Ustad / Ustazah</option></select></div>
+                                <div id="loanStudentWrap"><label class="block text-xs font-bold mb-1">Pilih Santri</label><select id="loanStudent" class="w-full p-3 border rounded-xl"><option value="">Pilih santri</option></select></div>
+                                <div id="loanStaffWrap" class="hidden"><label class="block text-xs font-bold mb-1">Nama Ustad / Ustazah</label><input id="loanStaffName" class="w-full p-3 border rounded-xl" placeholder="Masukkan nama peminjam"></div>
+                                <div><label class="block text-xs font-bold mb-1">Nominal Pinjaman (Rp)</label><input id="loanAmount" inputmode="numeric" oninput="formatNominalInput(this)" required class="w-full p-3 border rounded-xl" placeholder="100.000"></div>
+                                <div><label class="block text-xs font-bold mb-1">Batas Waktu Pelunasan</label><input type="date" id="loanDueDate" required class="w-full p-3 border rounded-xl"></div>
+                                <p class="text-xs text-amber-700 bg-amber-50 rounded-lg p-3">Denda keterlambatan otomatis Rp1.000 per hari setelah tanggal jatuh tempo. Pelunasan dicatat sebagai pembayaran tunai dan tidak memotong saldo tabungan.</p>
+                                <button id="btnSaveLoan" class="w-full p-3 rounded-xl bg-emerald text-white font-bold">Simpan Pinjaman</button>
+                            </form>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-lg mb-3">Ringkasan Pinjaman</h3>
+                            <div class="grid grid-cols-2 gap-3"><div class="bg-slate-50 p-4 rounded-xl"><p class="text-xs text-slate-500">Total Pokok Tersisa</p><b id="loanOutstanding" class="text-lg">Rp0</b></div><div class="bg-amber-50 p-4 rounded-xl"><p class="text-xs text-amber-700">Total Denda Berjalan</p><b id="loanFines" class="text-lg text-amber-700">Rp0</b></div></div>
+                            <p class="text-xs text-slate-500 mt-4">Denda bertambah otomatis berdasarkan tanggal hari ini dan berhenti setelah pokok pinjaman lunas.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"><div class="p-4 font-bold">Daftar Pinjaman dan Pembayaran</div><div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-xs uppercase"><tr><th class="p-3">Peminjam</th><th class="p-3">Jatuh Tempo</th><th class="p-3">Pokok Sisa</th><th class="p-3">Denda</th><th class="p-3">Total Tagihan</th><th class="p-3">Status</th><th class="p-3">Aksi</th></tr></thead><tbody id="loanTableBody"><tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pinjaman.</td></tr></tbody></table></div></div>
+                </section>
+
                 <section id="tab-riwayat" class="tab-content hidden space-y-6">
                     <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -909,21 +884,24 @@
                         <p class="text-xs text-slate-500 mt-1" id="printReportDate">Dicetak Tanggal: -</p>
                     </div>
 
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 no-print">
+                        <h3 class="font-bold text-slate-800">Filter Laporan Penarikan</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <select id="reportPeriod" onchange="renderLaporanTable()" class="p-3 rounded-xl border border-slate-200 text-sm">
+                                <option value="day">Per Hari</option><option value="week">Per Minggu</option><option value="month" selected>Per Bulan</option><option value="year">Per Tahun</option><option value="all">Semua Periode</option>
+                            </select>
+                            <input type="date" id="reportDate" onchange="renderLaporanTable()" class="p-3 rounded-xl border border-slate-200 text-sm">
+                            <input type="text" id="reportName" oninput="renderLaporanTable()" placeholder="Cari nama / NIS" class="p-3 rounded-xl border border-slate-200 text-sm">
+                            <button onclick="exportLaporanPenarikan()" class="p-3 rounded-xl bg-emerald text-white font-bold text-sm"><i class="fa-solid fa-file-excel mr-1"></i> Ekspor Penarikan</button>
+                        </div>
+                        <p class="text-xs text-slate-500">Laporan ini hanya menampilkan transaksi PENARIKAN tabungan, bukan setoran atau struk transaksi.</p>
+                    </div>
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
-                                <tr>
-                                    <th class="p-4">No</th>
-                                    <th class="p-4">NIS</th>
-                                    <th class="p-4">Nama Santri</th>
-                                    <th class="p-4">Kelas</th>
-                                    <th class="p-4 text-right">Saldo Saat Ini</th>
-                                </tr>
-                            </thead>
-                            <tbody id="laporanSaldoTableBody" class="divide-y divide-slate-100">
-                                <!-- Dynamic Rows -->
-                            </tbody>
-                        </table>
+                        <div class="p-4 flex justify-between items-center gap-3"><h3 class="font-bold text-slate-800">Rincian Penarikan</h3><strong id="reportWithdrawalCount" class="text-sm text-red-600">0 transaksi</strong></div>
+                        <div class="overflow-x-auto"><table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase"><tr><th class="p-4">Tanggal</th><th class="p-4">Nama Santri</th><th class="p-4">NIS</th><th class="p-4">Keterangan</th><th class="p-4 text-right">Nominal Penarikan</th></tr></thead>
+                            <tbody id="laporanSaldoTableBody" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-5 text-center text-slate-400">Belum ada data penarikan.</td></tr></tbody>
+                        </table></div>
                     </div>
                 </section>
 
@@ -1137,12 +1115,12 @@
             <i class="fas fa-wallet text-emerald-300 text-xl absolute"></i>
         </div>
         <h3 class="text-xl font-bold tracking-wide mb-1">Authenticating...</h3>
-        <p class="text-xs text-emerald-200">Menyiapkan Dashboard Santri Menabung</p>
+        <p class="text-xs text-emerald-200">Menyiapkan Dashboard SAKU SANTRI</p>
     </div>
 
     <script>
         // Transport API POST melalui iframe tersembunyi (tanpa fetch/CORS).
-        const SAKU_CONFIG = { GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwXGvGcWevq-hjNyg5dR8S6rwxOUdbv_oyZ6TtDyb0E88kR4FzJkRDaHiYdwNC_x4QU/exec' };
+        const SAKU_CONFIG = { GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxznT2Ck5ykINge9ISV9pk5K0MWGRKpq2FiTf5SerYgjyZSXuFJUpNZBvd86sMCt2Hd/exec' };
         const SAKU_PENDING_REQUESTS = new Map();
 
         window.addEventListener('message', function(event) {
@@ -1221,9 +1199,9 @@
 
         // GLOBAL APP STATE — data hanya berasal dari backend Google Sheets.
         const state = {
-            adminToken: null, adminName: 'Admin', santriList: [], transactions: [],
+            adminToken: null, adminName: 'Admin', santriList: [], transactions: [], loans: [],
             selectedSantriForTarik: null, pendingSetorRequestId: null, pendingQrTxRequestId: null,
-            cameraStarting: false, cameraStream: null, cameraFrame: null, barcodeDetector: null,
+            html5QrCode: null, cameraStarting: false, cameraWindow: null, cameraNonce: null,
             qrProcessing: false, chartInstance: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
         };
 
@@ -1302,35 +1280,37 @@
             closeMobileNav();
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('bg-slate-800', 'text-white', 'font-bold', 'active');
+                el.classList.remove('bg-slate-800', 'text-white', 'font-bold');
                 el.classList.add('text-slate-300');
             });
 
             const targetTab = document.getElementById(`tab-${tabId}`);
-            const targetNavs = document.querySelectorAll(`.nav-item[data-tab="${tabId}"], #nav-${tabId}`);
+            const targetNav = document.getElementById(`nav-${tabId}`);
 
             if(targetTab) targetTab.classList.remove('hidden');
-            targetNavs.forEach(targetNav => {
-                targetNav.classList.add('active', 'font-bold');
+            if(targetNav) {
+                targetNav.classList.add('bg-slate-800', 'text-white', 'font-bold');
                 targetNav.classList.remove('text-slate-300');
-            });
+            }
 
             const titles = {
                 dashboard: 'Dashboard Overview',
                 santri: 'Kelola Data Santri',
                 setor: 'Setor Uang Tabungan',
                 tarik: 'Setor & Penarikan (Scan QR)',
+                pinjaman: 'Pinjaman Santri & Ustad/Ustazah',
                 riwayat: 'Riwayat Transaksi',
                 laporan: 'Laporan Keuangan',
                 kartu: 'Cetak Kartu Tabungan',
                 pengaturan: 'Pengaturan Sistem'
             };
-            document.getElementById('pageTitle').innerText = titles[tabId] || 'Santri Menabung';
+            document.getElementById('pageTitle').innerText = titles[tabId] || 'SAKU SANTRI';
 
             if(tabId === 'dashboard') initChart();
             if(tabId === 'santri') renderSantriTable();
             if(tabId === 'setor') populateSantriSelects();
-            if(tabId !== 'tarik') stopCamera();
+            if(tabId === 'tarik') stopCamera();
+            if(tabId === 'pinjaman') { populateLoanStudents(); renderLoans(); }
             if(tabId === 'riwayat') renderRiwayatTable();
             if(tabId === 'laporan') renderLaporanTable();
             if(tabId === 'kartu') populateSantriSelects();
@@ -1343,6 +1323,7 @@
                 if (!data) throw new Error('Sesi tidak valid atau telah berakhir. Silakan login kembali.');
                 state.santriList = Array.isArray(data.santri) ? data.santri : [];
                 state.transactions = Array.isArray(data.transactions) ? data.transactions : [];
+                state.loans = Array.isArray(data.loans) ? data.loans : [];
                 state.settings = data.settings || state.settings;
                 const cfgName = document.getElementById('cfgNamaDayah');
                 if (cfgName) cfgName.value = state.settings.namaDayah || 'Dayah Babul Maghfirah';
@@ -1564,7 +1545,7 @@
             e.preventDefault();
             const nis = document.getElementById('setorSantriSelect').value;
             const nominal = parseNominalInput(document.getElementById('setorNominal').value);
-            const ket = document.getElementById('setorKeterangan').value;
+            const ket = 'Setoran tabungan';
             const btn = document.getElementById('btnSubmitSetor');
             if (btn.disabled) return;
             if (!nis || !Number.isSafeInteger(nominal) || nominal < 1000 || nominal % 500 !== 0) { alert('Pilih santri dan masukkan nominal minimal Rp1.000 dengan kelipatan Rp500.'); return; }
@@ -1577,83 +1558,112 @@
                 document.getElementById('setorSantriInfo').classList.add('hidden'); showReceipt(res.transaction);
                 showToast(res.duplicate ? 'Transaksi sudah diproses sebelumnya.' : 'Setoran berhasil disimpan.'); await refreshData();
             } catch(err) { alert(err.message + '\nJika respons server terputus, gunakan tombol proses dengan request yang sama agar tidak terjadi transaksi ganda.'); }
-            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-circle text-lg"></i> Confirm & Simpan Penyimpanan'; }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-circle text-lg"></i> Simpan Setoran'; }
         }
 
-        // PEMINDAI QR TERINTEGRASI: kamera berjalan langsung di halaman GitHub Pages ini.
-        // Tidak membuka situs/repository kamera lain dan tidak memerlukan library scanner eksternal.
+        // SCAN QR & TARIK UANG LOGIC (Kamera Diperbaiki Untuk Google Apps Script Iframe)
+        // Kamera dijalankan pada halaman GitHub Pages HTTPS terpisah untuk menghindari
+        // pembatasan izin kamera pada iframe Google Apps Script.
         async function startCamera() {
-            if (state.cameraStarting) return;
-            if (!('BarcodeDetector' in window)) {
-                alert('Browser ini belum mendukung pemindaian QR bawaan. Gunakan Chrome Android versi terbaru atau masukkan nomor rekening secara manual.');
+            const cameraUrlBase = 'https://nurhaliza7035-lgtm.github.io/nabung/';
+            if (!cameraUrlBase || cameraUrlBase.includes('GANTI_DENGAN_URL')) {
+                alert('Konfigurasikan URL kamera GitHub Pages terlebih dahulu pada variabel cameraUrlBase di fungsi startCamera().');
                 return;
             }
-            try {
-                await stopCamera();
-                state.cameraStarting = true;
-                const reader = document.getElementById('reader');
-                reader.innerHTML = '<video id="qrVideo" autoplay muted playsinline></video>';
-                const video = document.getElementById('qrVideo');
-                state.cameraStream = await navigator.mediaDevices.getUserMedia({
-                    audio:false,
-                    video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
-                });
-                video.srcObject = state.cameraStream;
-                await video.play();
-                state.barcodeDetector = new BarcodeDetector({formats:['qr_code']});
-                state.cameraStarting = false;
-                showToast('Kamera aktif. Arahkan QR kartu santri ke kamera.','fa-camera text-emerald-400');
-                const scanFrame = async () => {
-                    if (!state.cameraStream || !video || video.readyState < 2) return;
-                    try {
-                        const codes = await state.barcodeDetector.detect(video);
-                        if (codes && codes.length && codes[0].rawValue) {
-                            const value = String(codes[0].rawValue).trim();
-                            await stopCamera();
-                            processQrCodeResult(value);
-                            showToast('QR santri berhasil dipindai.');
-                            return;
-                        }
-                    } catch (scanError) { console.warn('Pemindaian QR:', scanError); }
-                    if (state.cameraStream) state.cameraFrame = requestAnimationFrame(scanFrame);
-                };
-                state.cameraFrame = requestAnimationFrame(scanFrame);
-            } catch (error) {
-                state.cameraStarting = false;
-                await stopCamera();
-                alert('Kamera tidak dapat dibuka. Pastikan izin kamera diberikan dan aplikasi dibuka melalui HTTPS. Detail: ' + (error && error.message ? error.message : error));
+
+            if (state.cameraWindow && !state.cameraWindow.closed) {
+                state.cameraWindow.focus();
+                return;
             }
+
+            const nonce = (window.crypto && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+
+            state.cameraNonce = nonce;
+            const url = cameraUrlBase + '?nonce=' + encodeURIComponent(nonce);
+            state.cameraWindow = window.open(url, 'SAKU_SANTRICamera', 'popup,width=520,height=760,resizable=yes,scrollbars=yes');
+
+            if (!state.cameraWindow) {
+                alert('Halaman kamera diblokir oleh browser. Izinkan pop-up untuk situs aplikasi ini, lalu klik Buka Kamera kembali.');
+                return;
+            }
+
+            showToast('Halaman kamera dibuka. Izinkan akses kamera jika diminta.', 'fa-camera text-emerald-400');
         }
 
-        async function stopCamera() {
-            if (state.cameraFrame) cancelAnimationFrame(state.cameraFrame);
-            state.cameraFrame = null;
-            if (state.cameraStream) {
-                state.cameraStream.getTracks().forEach(track => track.stop());
-                state.cameraStream = null;
-            }
-            state.barcodeDetector = null;
-            const video = document.getElementById('qrVideo');
-            if (video) { try { video.pause(); video.srcObject = null; } catch (_) {} }
-            state.cameraStarting = false;
-        }
+        // Hanya menerima hasil dari jendela kamera yang dibuka aplikasi dan nonce yang cocok.
+        window.addEventListener('message', function(event) {
+            if (!state.cameraWindow || event.source !== state.cameraWindow) return;
+            if (!event.data || event.data.type !== 'SANTRI_MENABUNG_QR_RESULT') return;
+            if (event.data.nonce !== state.cameraNonce) return;
 
-        async function scanQrFromFile(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
-            try {
-                if (!('BarcodeDetector' in window)) throw new Error('Browser belum mendukung pembacaan QR dari gambar. Gunakan Chrome Android terbaru.');
-                const detector = new BarcodeDetector({formats:['qr_code']});
-                const bitmap = await createImageBitmap(file);
-                const codes = await detector.detect(bitmap);
-                bitmap.close && bitmap.close();
-                if (!codes.length || !codes[0].rawValue) throw new Error('QR Code tidak ditemukan pada gambar.');
-                processQrCodeResult(String(codes[0].rawValue).trim());
-                showToast('QR dari gambar berhasil dibaca.');
-            } catch (err) {
-                alert(err.message || 'QR Code tidak dapat dibaca dari gambar.');
-            } finally { event.target.value = ''; }
+            const qrText = String(event.data.value || '').trim();
+            state.cameraNonce = null;
+            state.cameraWindow = null;
+
+            if (!qrText) {
+                showToast('Tidak ada hasil QR yang diterima.', 'fa-circle-exclamation text-amber-400');
+                return;
+            }
+            processQrCodeResult(qrText);
+            showToast('Hasil QR diterima dari kamera.');
+        });
+
+        // CARI FUNGSI INI DI DALAM TAG <script>:
+async function stopCamera() {
+    if (state.cameraWindow && !state.cameraWindow.closed) {
+        try { state.cameraWindow.postMessage({ type: 'SANTRI_MENABUNG_CAMERA_STOP', nonce: state.cameraNonce }, '*'); } catch (_) {}
+        try { state.cameraWindow.close(); } catch (_) {}
+    }
+    state.cameraWindow = null;
+    state.cameraNonce = null;
+
+    const scanner = state.html5QrCode;
+    if (!scanner) return;
+
+    state.html5QrCode = null;
+
+    try {
+        if (scanner.isScanning) {
+            await scanner.stop();
         }
+    } catch (error) {
+        console.warn('Peringatan saat menghentikan kamera:', error);
+    }
+
+    try {
+        await scanner.clear();
+    } catch (error) {
+        console.warn('Peringatan saat membersihkan scanner:', error);
+    }
+}
+
+// TEMPELKAN KODE BARU TEPAT DI BAWAH FUNGSI stopCamera():
+async function scanQrFromFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    let fileScanner = null;
+    try {
+        await stopCamera();
+        if (typeof Html5Qrcode === 'undefined') {
+            throw new Error('Library pemindai QR belum dimuat.');
+        }
+        fileScanner = new Html5Qrcode('reader');
+        const decodedText = await fileScanner.scanFile(file, true);
+        processQrCodeResult(String(decodedText || '').trim());
+        showToast('QR Code berhasil dibaca!');
+    } catch (err) {
+        alert('QR Code tidak terdeteksi pada gambar. Pastikan foto QR terlihat jelas, terang, dan fokus.');
+        console.error('Gagal scan file QR:', err);
+    } finally {
+        if (fileScanner) {
+            try { await fileScanner.clear(); } catch (clearErr) { console.warn('Gagal membersihkan pemindai gambar:', clearErr); }
+        }
+        event.target.value = '';
+    }
+}
 
         function cariSantriByRekening() {
             const rek = document.getElementById('manualRekInput').value.trim();
@@ -1699,6 +1709,10 @@
             const receiverInput = document.getElementById('tarikPenerima');
             const button = document.getElementById('btnSubmitTarik');
             const saldoAfter = document.getElementById('tarikSaldoAfter');
+            const ketWrap = document.getElementById('tarikKeteranganWrap');
+            const ketSelect = document.getElementById('tarikKeterangan');
+            if (ketWrap) ketWrap.classList.toggle('hidden', isSetor);
+            if (ketSelect) ketSelect.required = !isSetor;
 
             if (badge) {
                 badge.textContent = isSetor ? 'SETOR' : 'TARIK';
@@ -1744,7 +1758,7 @@
             const jenis = document.getElementById('qrTransactionType').value === 'SETOR' ? 'SETOR' : 'TARIK';
             const nominal = parseNominalInput(document.getElementById('tarikNominal').value);
             const penerima = document.getElementById('tarikPenerima').value.trim();
-            const ketInput = document.getElementById('tarikKeterangan').value.trim();
+            const ketInput = document.getElementById('tarikKeterangan').value;
 
             if (!Number.isSafeInteger(nominal) || nominal < 1000 || nominal % 500 !== 0) {
                 alert('Nominal harus minimal Rp1.000 dan kelipatan Rp500.');
@@ -1754,6 +1768,7 @@
                 alert('Nominal penarikan melebihi saldo santri saat ini!');
                 return;
             }
+            if (jenis === 'TARIK' && !ketInput) { alert('Pilih keterangan penarikan.'); return; }
             if (jenis === 'TARIK' && !penerima) {
                 alert('Nama penerima/pengambil harus diisi.');
                 return;
@@ -1837,32 +1852,75 @@
 
         function renderLaporanTable() {
             const body = document.getElementById('laporanSaldoTableBody');
-            body.innerHTML = '';
-
-            let totalSetorAcc = 0;
-            let totalTarikAcc = 0;
-
-            state.transactions.forEach(t => {
-                if(t.jenis === 'SETOR') totalSetorAcc += Number(t.nominal);
-                if(t.jenis === 'TARIK') totalTarikAcc += Number(t.nominal);
-            });
-
-            document.getElementById('reportTotalSetor').innerText = formatRupiah(totalSetorAcc);
-            document.getElementById('reportTotalTarik').innerText = formatRupiah(totalTarikAcc);
-            document.getElementById('reportTotalNetto').innerText = formatRupiah(totalSetorAcc - totalTarikAcc);
+            const period = document.getElementById('reportPeriod')?.value || 'month';
+            const dateValue = document.getElementById('reportDate')?.value || new Date().toISOString().slice(0,10);
+            const nameQuery = (document.getElementById('reportName')?.value || '').toLowerCase().trim();
+            const ref = new Date(dateValue + 'T12:00:00');
+            const startOfWeek = new Date(ref); startOfWeek.setDate(ref.getDate() - ((ref.getDay()+6)%7));
+            const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+7);
+            const filtered = state.transactions.filter(t => {
+                if (t.jenis !== 'TARIK') return false;
+                const d = new Date(String(t.waktu).replace(' ','T'));
+                if (Number.isNaN(d.getTime())) return false;
+                const matchPeriod = period === 'all' || (period === 'day' && d.toDateString() === ref.toDateString()) ||
+                    (period === 'week' && d >= startOfWeek && d < endOfWeek) ||
+                    (period === 'month' && d.getFullYear()===ref.getFullYear() && d.getMonth()===ref.getMonth()) ||
+                    (period === 'year' && d.getFullYear()===ref.getFullYear());
+                const matchName = !nameQuery || String(t.nama).toLowerCase().includes(nameQuery) || String(t.nis).toLowerCase().includes(nameQuery);
+                return matchPeriod && matchName;
+            }).sort((a,b)=>String(b.waktu).localeCompare(String(a.waktu)));
+            const totalTarik = filtered.reduce((sum,t)=>sum+Number(t.nominal||0),0);
+            document.getElementById('reportTotalSetor').innerText = formatRupiah(state.transactions.filter(t=>t.jenis==='SETOR').reduce((s,t)=>s+Number(t.nominal||0),0));
+            document.getElementById('reportTotalTarik').innerText = formatRupiah(totalTarik);
+            document.getElementById('reportTotalNetto').innerText = formatRupiah(state.santriList.reduce((s,x)=>s+Number(x.saldo||0),0));
+            document.getElementById('reportWithdrawalCount').innerText = `${filtered.length} transaksi • ${formatRupiah(totalTarik)}`;
             document.getElementById('printReportDate').innerText = 'Dicetak Tanggal: ' + new Date().toLocaleString('id-ID');
+            body.innerHTML = filtered.length ? filtered.map(t=>`<tr class="border-b border-slate-100"><td class="p-4 text-xs">${t.waktu}</td><td class="p-4 font-semibold">${t.nama}</td><td class="p-4 text-xs">${t.nis}</td><td class="p-4 text-xs">${t.ket||'-'}</td><td class="p-4 text-right font-bold text-red-600">${formatRupiah(t.nominal)}</td></tr>`).join('') : '<tr><td colspan="5" class="p-6 text-center text-slate-400">Tidak ada transaksi penarikan pada filter ini.</td></tr>';
+        }
 
-            state.santriList.forEach((s, idx) => {
-                body.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="p-4 text-xs">${idx + 1}</td>
-                        <td class="p-4 font-bold text-slate-800">${s.nis}</td>
-                        <td class="p-4 font-semibold text-slate-900">${s.nama}</td>
-                        <td class="p-4 text-xs text-slate-500">${s.kelas}</td>
-                        <td class="p-4 text-right font-bold text-emerald">${formatRupiah(s.saldo)}</td>
-                    </tr>
-                `;
-            });
+        function exportLaporanPenarikan() {
+            const rows = [...document.querySelectorAll('#laporanSaldoTableBody tr')].map(tr=>[...tr.children].map(td=>'"'+td.innerText.replace(/"/g,'""')+'"').join(','));
+            const csv = 'Tanggal,Nama Santri,NIS,Keterangan,Nominal Penarikan\n' + rows.join('\n');
+            const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download='Laporan_Penarikan_SAKU_SANTRI.csv'; a.click(); URL.revokeObjectURL(a.href);
+        }
+
+        function populateLoanStudents() {
+            const sel=document.getElementById('loanStudent'); if(!sel) return;
+            const old=sel.value; sel.innerHTML='<option value="">Pilih santri</option>';
+            state.santriList.forEach(s=>{const o=document.createElement('option');o.value=s.nis;o.textContent=`${s.nis} - ${s.nama}`;sel.appendChild(o);});
+            if(old) sel.value=old;
+        }
+        function onLoanBorrowerTypeChange(){
+            const staff=document.getElementById('loanBorrowerType').value==='STAFF';
+            document.getElementById('loanStudentWrap').classList.toggle('hidden',staff);
+            document.getElementById('loanStaffWrap').classList.toggle('hidden',!staff);
+        }
+        async function submitLoan(e){
+            e.preventDefault(); const type=document.getElementById('loanBorrowerType').value;
+            const borrowerId=type==='SANTRI'?document.getElementById('loanStudent').value:'';
+            const borrowerName=type==='STAFF'?document.getElementById('loanStaffName').value.trim():'';
+            const nominal=parseNominalInput(document.getElementById('loanAmount').value), dueDate=document.getElementById('loanDueDate').value;
+            if(type==='SANTRI'&&!borrowerId){alert('Pilih santri peminjam.');return;}
+            if(type==='STAFF'&&!borrowerName){alert('Masukkan nama ustad/ustazah.');return;}
+            if(!Number.isSafeInteger(nominal)||nominal<1000){alert('Nominal pinjaman minimal Rp1.000.');return;}
+            if(!dueDate){alert('Tentukan tanggal jatuh tempo.');return;}
+            const btn=document.getElementById('btnSaveLoan');btn.disabled=true;
+            try{const res=await apiCall('createLoan',[{borrowerType:type,borrowerId,borrowerName,principal:nominal,dueDate},state.adminToken]);if(!res?.success)throw new Error(res?.message||'Gagal menyimpan pinjaman.');document.getElementById('loanForm').reset();onLoanBorrowerTypeChange();await refreshData();renderLoans();showToast('Pinjaman berhasil dicatat.');}
+            catch(err){alert(err.message);}finally{btn.disabled=false;}
+        }
+        function renderLoans(){
+            const body=document.getElementById('loanTableBody');if(!body)return;
+            const loans=state.loans||[];let principal=0,fines=0;
+            loans.forEach(l=>{principal+=Number(l.outstandingPrincipal||0);fines+=Number(l.outstandingFine||0);});
+            document.getElementById('loanOutstanding').innerText=formatRupiah(principal);document.getElementById('loanFines').innerText=formatRupiah(fines);
+            body.innerHTML=loans.length?loans.slice().reverse().map(l=>`<tr class="border-b"><td class="p-3 font-semibold">${l.borrowerName}<div class="text-xs text-slate-400">${l.borrowerType==='SANTRI'?'Santri':'Ustad/Ustazah'}</div></td><td class="p-3 text-xs">${l.dueDate}</td><td class="p-3">${formatRupiah(l.outstandingPrincipal)}</td><td class="p-3 text-amber-700">${formatRupiah(l.outstandingFine)}<div class="text-xs">${l.fineDays} hari</div></td><td class="p-3 font-bold">${formatRupiah(Number(l.outstandingPrincipal)+Number(l.outstandingFine))}</td><td class="p-3">${l.status}</td><td class="p-3">${l.status==='LUNAS'?'-':`<button onclick="payLoan('${l.id}')" class="px-3 py-2 bg-emerald text-white rounded-lg text-xs">Catat Tunai</button>`}</td></tr>`).join(''):'<tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pinjaman.</td></tr>';
+        }
+        async function payLoan(id){
+            const loan=(state.loans||[]).find(x=>String(x.id)===String(id));if(!loan)return;
+            const max=Number(loan.outstandingPrincipal||0)+Number(loan.outstandingFine||0);
+            const raw=prompt(`Tagihan saat ini ${formatRupiah(max)}. Masukkan jumlah pembayaran TUNAI:`);if(raw===null)return;
+            const amount=parseNominalInput(raw);if(!Number.isSafeInteger(amount)||amount<=0||amount>max){alert('Nominal pembayaran tidak valid.');return;}
+            try{const res=await apiCall('repayLoan',[{loanId:id,amount},state.adminToken]);if(!res?.success)throw new Error(res?.message||'Pembayaran gagal.');await refreshData();renderLoans();showToast('Pembayaran tunai pinjaman tercatat.');}catch(err){alert(err.message);}
         }
 
         // PASSBOOK CARD GENERATOR
@@ -2063,7 +2121,7 @@
             const backupStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", backupStr);
-            dlAnchor.setAttribute("download", `Backup_SantriMenabung_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchor.setAttribute("download", `Backup_SAKU_SANTRI_${new Date().toISOString().split('T')[0]}.json`);
             dlAnchor.click();
         }
 
