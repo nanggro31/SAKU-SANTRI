@@ -420,6 +420,18 @@
             .portal-quick-copy small { font-size:8px; }
         }
 
+
+        /* Modal konfirmasi keluar - tampilan modern di tengah layar */
+        #logoutConfirmModal { position:fixed; inset:0; z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(8,25,20,.68); backdrop-filter:blur(9px); opacity:0; visibility:hidden; transition:opacity .22s ease, visibility .22s ease; }
+        #logoutConfirmModal.show { opacity:1; visibility:visible; }
+        #logoutConfirmCard { width:min(100%,430px); background:linear-gradient(145deg,#ffffff 0%,#f4fbf7 100%); border:1px solid rgba(212,175,55,.42); border-radius:26px; padding:30px 26px 24px; text-align:center; box-shadow:0 28px 90px rgba(0,0,0,.30); transform:translateY(18px) scale(.96); transition:transform .25s ease; }
+        #logoutConfirmModal.show #logoutConfirmCard { transform:translateY(0) scale(1); }
+        #logoutConfirmIcon { width:76px; height:76px; margin:0 auto 18px; display:flex; align-items:center; justify-content:center; border-radius:24px; color:#b8860b; background:linear-gradient(145deg,#fff6d8,#f6e4a5); box-shadow:inset 0 1px 0 #fff,0 10px 24px rgba(179,143,35,.18); font-size:30px; }
+        #logoutConfirmCard h3 { color:#123f32; font-size:21px; font-weight:800; letter-spacing:-.4px; margin-bottom:9px; }
+        #logoutConfirmCard p { color:#64748b; font-size:13px; line-height:1.7; }
+        #logoutConfirmCard button { min-height:48px; border-radius:14px; font-weight:800; font-size:13px; transition:transform .15s ease,filter .15s ease; }
+        #logoutConfirmCard button:active { transform:scale(.97); }
+        @media(max-width:480px) { #logoutConfirmCard { padding:26px 20px 20px; border-radius:22px; } #logoutConfirmCard h3 {font-size:19px;} }
     </style>
 </head>
 <body class="h-full flex flex-col antialiased text-slate-800">
@@ -537,7 +549,7 @@
                         <div class="w-8 h-8 rounded-full bg-emerald flex items-center justify-center text-xs font-bold">ADM</div>
                         <div class="text-xs">
                             <p class="font-bold text-white" id="adminDisplayName">Admin Utama</p>
-                            <p class="text-slate-400">Administrator</p>
+                            <p class="text-slate-400">Ustad. Azwar, S.Kom</p>
                         </div>
                     </div>
                     <button onclick="handleLogout()" title="Keluar" class="p-2 text-slate-400 hover:text-red-400 transition">
@@ -1321,6 +1333,20 @@
         </div>
     </div>
 
+    <!-- Modal Konfirmasi Keluar -->
+    <div id="logoutConfirmModal" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle" onclick="if(event.target===this) closeLogoutConfirm()">
+        <div id="logoutConfirmCard">
+            <div id="logoutConfirmIcon"><i class="fa-solid fa-right-from-bracket"></i></div>
+            <div class="text-[10px] font-extrabold tracking-[3px] text-emerald uppercase mb-2">SAKU SANTRI</div>
+            <h3 id="logoutConfirmTitle">Yakin ingin keluar?</h3>
+            <p>Apakah Anda yakin ingin keluar dari aplikasi SAKU SANTRI? Sesi admin akan diakhiri dan Anda perlu masuk kembali menggunakan username dan password.</p>
+            <div class="grid grid-cols-2 gap-3 mt-7">
+                <button type="button" onclick="closeLogoutConfirm()" class="bg-slate-100 hover:bg-slate-200 text-slate-700">Batal</button>
+                <button type="button" id="confirmLogoutButton" onclick="confirmLogoutNow()" class="bg-emerald hover:bg-emerald-dark text-white shadow-lg shadow-emerald/20"><i class="fa-solid fa-check mr-2"></i>Ya, Keluar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm pointer-events-none">
         <i id="toastIcon" class="fas fa-info-circle text-emerald-400 text-base"></i>
@@ -1447,10 +1473,39 @@
             }, 3000);
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        const SAKU_SESSION_KEY = 'SAKU_SANTRI_ADMIN_SESSION_TOKEN';
+        window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('currentDateDisplay').innerHTML = `<i class="fa-solid fa-calendar-day mr-1 text-gold"></i> ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
             onQrTransactionTypeChange();
+            await restoreAdminSession();
         });
+
+        async function restoreAdminSession() {
+            let savedToken = null;
+            try { savedToken = localStorage.getItem(SAKU_SESSION_KEY); } catch (e) {}
+            if (!savedToken) return;
+            state.adminToken = savedToken;
+            try {
+                const data = await apiCall('getData', [savedToken]);
+                if (!data) throw new Error('SESSION_INVALID');
+                completeLogin(true);
+            } catch (err) {
+                if (/SESSION_INVALID|sesi|token/i.test(String(err.message || err))) {
+                    clearAdminSession();
+                    state.adminToken = null;
+                } else {
+                    // Gangguan jaringan tidak menghapus token; pengguna dapat memuat ulang dan mencoba lagi.
+                    showToast('Tidak dapat memeriksa sesi. Periksa koneksi lalu muat ulang halaman.', 'fa-circle-exclamation text-amber-400');
+                }
+            }
+        }
+
+        function saveAdminSession(token) {
+            try { localStorage.setItem(SAKU_SESSION_KEY, token); } catch (e) { console.warn('Penyimpanan sesi browser tidak tersedia:', e); }
+        }
+        function clearAdminSession() {
+            try { localStorage.removeItem(SAKU_SESSION_KEY); } catch (e) {}
+        }
 
         // Login Handler
         async function handleLogin(e) {
@@ -1465,32 +1520,54 @@
                 const res = await apiCall('login',[user,pass]);
                 if (res && res.success) {
                     state.adminToken = res.token; state.adminName = res.username || 'Admin';
+                    saveAdminSession(res.token);
                     completeLogin();
                 } else { errBox.textContent = (res && res.message) || 'Username atau password salah.'; errBox.classList.remove('hidden'); }
             } catch (err) { errBox.textContent = err.message; errBox.classList.remove('hidden'); }
             finally { loginLoadingOverlay.classList.remove('opacity-100'); loginLoadingOverlay.classList.add('opacity-0','pointer-events-none'); }
         }
 
-        function completeLogin() {
+        function completeLogin(isRestored = false) {
             loginOverlay.classList.add('hidden');
             mainApp.classList.remove('hidden');
-            document.getElementById('adminDisplayName').innerText = state.adminName;
-            showToast("Berhasil masuk ke dashboard!");
+            document.getElementById('adminDisplayName').innerText = state.adminName || 'Admin';
+            if (!isRestored) showToast("Berhasil masuk ke dashboard!");
             refreshData();
         }
 
+        function openLogoutConfirm() {
+            const modal = document.getElementById('logoutConfirmModal');
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        function closeLogoutConfirm() {
+            const modal = document.getElementById('logoutConfirmModal');
+            if (modal) modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
         async function handleLogout() {
-            // Konfirmasi hanya dijalankan saat admin menekan tombol Keluar.
-            const yakinKeluar = window.confirm('Apakah Anda yakin ingin keluar dari aplikasi SAKU SANTRI?');
-            if (!yakinKeluar) return;
-
+            // Klik Keluar hanya membuka modal; sesi belum dihapus sebelum pilihan Ya, Keluar.
+            openLogoutConfirm();
+        }
+        async function confirmLogoutNow() {
+            const button = document.getElementById('confirmLogoutButton');
+            if (button) { button.disabled = true; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Keluar...'; }
             const token = state.adminToken;
             try { if (token) await apiCall('logout',[token]); } catch (err) { console.warn('Logout server:',err); }
-            state.adminToken = null; state.santriList = []; state.transactions = [];
+            clearAdminSession();
+            state.adminToken = null; state.adminName = 'Admin'; state.santriList = []; state.transactions = []; state.loans = [];
             await stopCamera();
+            closeLogoutConfirm();
             mainApp.classList.add('hidden'); loginOverlay.classList.remove('hidden');
-            document.getElementById('loginForm').reset(); showToast('Berhasil keluar.');
+            loginForm.reset();
+            if (button) { button.disabled = false; button.innerHTML = '<i class="fa-solid fa-check mr-2"></i>Ya, Keluar'; }
+            showToast('Berhasil keluar. Silakan login kembali.');
         }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closeLogoutConfirm();
+        });
 
         function toggleMobileNav() {
             document.body.classList.toggle('mobile-nav-open');
@@ -1557,8 +1634,13 @@
                 updateDashboardStats(); renderSantriTable(); populateSantriSelects();
                 if (!document.getElementById('tab-dashboard').classList.contains('hidden')) initChart();
             } catch (err) {
-                showToast(err.message || 'Gagal memuat data dari server.','fa-circle-exclamation text-amber-400');
-                if (/sesi|token/i.test(err.message || '')) handleLogout();
+                if (/sesi|token/i.test(err.message || '')) {
+                    clearAdminSession(); state.adminToken = null;
+                    mainApp.classList.add('hidden'); loginOverlay.classList.remove('hidden');
+                    showToast('Sesi admin telah berakhir. Silakan login kembali.', 'fa-circle-exclamation text-amber-400');
+                } else {
+                    showToast(err.message || 'Gagal memuat data dari server.','fa-circle-exclamation text-amber-400');
+                }
             }
         }
 
