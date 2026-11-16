@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANTRI MENABUNG - Dayah Babul Maghfirah</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            DEFAULT: '#0E6B4F',
+                            dark: '#114D3D',
+                            light: '#188A67',
+                            soft: '#E8F5E9'
+                        },
+                        gold: {
+                            DEFAULT: '#D4AF37',
+                            light: '#F3E5AB',
+                            dark: '#B38F23'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- QRCode.js for generating QR Codes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- HTML5 QR Code Scanner for Web Camera -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- Chart.js for Financial Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-header { background: rgba(14, 107, 79, 0.95); backdrop-filter: blur(8px); }
+        .print-only { display: none; }
+        @media print {
+            @page { margin: 8mm; }
+            body { background: #fff !important; font-size: 10pt !important; }
+
+            /* Mode cetak struk */
+            body:not(.print-kartu) * { visibility: hidden !important; }
+            body:not(.print-kartu) #modalReceipt {
+                display: block !important; position: absolute !important; inset: 0 !important;
+                width: 100% !important; height: auto !important; min-height: 0 !important;
+                padding: 0 !important; margin: 0 !important; background: #fff !important;
+                backdrop-filter: none !important; visibility: visible !important;
+            }
+            body:not(.print-kartu) #modalReceipt,
+            body:not(.print-kartu) #modalReceipt * { visibility: visible !important; }
+            body:not(.print-kartu) #modalReceipt > #receiptCard {
+                display: block !important; width: 80mm !important; max-width: 80mm !important;
+                margin: 0 auto !important; padding: 5mm !important; border: 0 !important;
+                border-radius: 0 !important; box-shadow: none !important; background: #fff !important;
+            }
+            body:not(.print-kartu) #modalReceipt .no-print { display: none !important; }
+
+            /* Mode cetak kartu santri: hanya area kartu yang dicetak */
+            body.print-kartu * { visibility: hidden !important; }
+            body.print-kartu #tab-kartu {
+                display: block !important; visibility: visible !important;
+                position: static !important; width: 100% !important; margin: 0 !important;
+                padding: 0 !important; background: #fff !important;
+            }
+            body.print-kartu #kartuPrintArea,
+            body.print-kartu #kartuPrintArea * { visibility: visible !important; }
+            body.print-kartu #kartuPrintArea {
+                display: grid !important;
+                grid-template-columns: repeat(2, 95mm) !important;
+                justify-content: center !important;
+                align-content: start !important;
+                gap: 6mm 5mm !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            body.print-kartu #kartuPrintArea .print-student-card {
+                display: flex !important;
+                position: relative !important;
+                box-sizing: border-box !important;
+                width: 95mm !important;
+                height: 59mm !important;
+                min-width: 95mm !important;
+                max-width: 95mm !important;
+                margin: 0 !important;
+                padding: 4mm !important;
+                overflow: hidden !important;
+                border-radius: 3mm !important;
+                box-shadow: none !important;
+                border: 1px solid #b89542 !important;
+                color: #fff !important;
+                background: linear-gradient(135deg, #064e3b, #0e6b4f, #34a37b) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+            body.print-kartu #kartuPrintArea .print-student-card * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body.print-kartu #kartuPrintArea .print-student-card img {
+                object-fit: contain !important;
+            }
+            body.print-kartu #kartuPrintArea .print-student-card .text-white,
+            body.print-kartu #kartuPrintArea .print-student-card .text-gold,
+            body.print-kartu #kartuPrintArea .print-student-card .text-emerald-soft {
+                color: #fff !important;
+            }
+            body.print-kartu #kartuPrintArea .print-student-card .text-gold {
+                color: #f5d477 !important;
+            }
+            body.print-kartu #kartuPrintArea .print-student-card .text-emerald-soft {
+                color: #d1fae5 !important;
+            }
+            body.print-kartu .no-print { display: none !important; }
+            body.print-kartu #kartuPassbook { display: none !important; }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #0E6B4F; border-radius: 4px; }
+    
+
+        /* ============================================================
+           REDESAIN NEOMORPHIC + RESPONSIVE - SANTRI MENABUNG
+           Hanya lapisan tampilan; ID dan fungsi aplikasi tetap dipakai.
+        ============================================================ */
+        :root {
+            --neo-bg: #eef2fb;
+            --neo-blue: #2865ec;
+            --neo-blue-deep: #2545bd;
+            --neo-ink: #17244a;
+            --neo-muted: #53648b;
+            --neo-shadow-light: rgba(255,255,255,.95);
+            --neo-shadow-dark: rgba(34,55,103,.16);
+        }
+        html, body { min-height:100%; width:100%; }
+        body { overflow-x:hidden; background:#eef2fb; }
+        button, input, select, textarea { max-width:100%; }
+        img, canvas, svg { max-width:100%; }
+
+        /* Login: soft blue-white neomorphism */
+        #loginOverlay {
+            overflow-y:auto;
+            background:
+                radial-gradient(circle at 8% 4%, rgba(255,255,255,.96) 0 10%, transparent 28%),
+                radial-gradient(circle at 96% 88%, rgba(40,101,236,.13), transparent 27%),
+                linear-gradient(145deg,#e7ecf7 0%,#f7f9fd 48%,#e9eef9 100%) !important;
+            backdrop-filter:none !important;
+            padding:clamp(14px,4vw,32px) !important;
+        }
+        #loginOverlay::before, #loginOverlay::after {
+            content:""; position:fixed; z-index:0; pointer-events:none; border-radius:50%;
+            border:1px solid rgba(255,255,255,.95);
+            box-shadow: inset 8px 8px 22px rgba(93,115,166,.12), 8px 12px 28px rgba(40,72,140,.10);
+        }
+        #loginOverlay::before { width:clamp(190px,32vw,390px); height:clamp(190px,32vw,390px); top:-150px; left:-115px; }
+        #loginOverlay::after { width:clamp(170px,27vw,330px); height:clamp(170px,27vw,330px); bottom:-155px; right:-105px; }
+        #loginOverlay > div {
+            position:relative; z-index:1; width:min(100%,510px) !important; max-width:510px !important;
+            padding:clamp(24px,5vw,46px) !important; border:1px solid rgba(255,255,255,.9) !important;
+            border-top:0 !important; border-radius:34px !important; background:rgba(247,249,253,.88) !important;
+            box-shadow:18px 18px 42px rgba(34,55,103,.13),-16px -16px 38px rgba(255,255,255,.98) !important;
+        }
+        #loginOverlay > div > div:first-child { margin-bottom:clamp(22px,4vh,36px) !important; }
+        #loginOverlay > div > div:first-child > div {
+            width:clamp(104px,24vw,150px) !important; height:clamp(104px,24vw,150px) !important;
+            padding:20px; border-radius:34px; background:linear-gradient(145deg,#ffffff,#e9eef9);
+            box-shadow:10px 10px 24px rgba(34,55,103,.13),-10px -10px 24px #fff;
+        }
+        #loginOverlay h2 { color:var(--neo-ink) !important; font-size:clamp(27px,5vw,40px) !important; font-weight:800 !important; letter-spacing:-1.4px !important; }
+        #loginOverlay > div > div:first-child p { color:var(--neo-muted) !important; letter-spacing:2.5px; font-size:clamp(10px,2vw,13px) !important; }
+        #loginOverlay form { display:flex; flex-direction:column; gap:16px !important; }
+        #loginOverlay form > div:not(#loginError) label { color:#53648b !important; font-size:10px !important; }
+        #loginOverlay form .relative > i:first-child { left:18px !important; top:50% !important; transform:translateY(-50%); color:#53648b !important; font-size:17px; }
+        #loginOverlay form input {
+            min-height:60px; border:1px solid rgba(255,255,255,.95) !important; border-radius:22px !important;
+            background:rgba(238,242,251,.92) !important; color:var(--neo-ink) !important;
+            padding:15px 48px 15px 56px !important; font-size:15px !important;
+            box-shadow:inset 4px 4px 10px rgba(34,55,103,.10),inset -4px -4px 10px rgba(255,255,255,.98),5px 6px 14px rgba(34,55,103,.08) !important;
+        }
+        #loginOverlay form input:focus { outline:none !important; border-color:#8eabed !important; box-shadow:inset 3px 3px 8px rgba(34,55,103,.08),0 0 0 3px rgba(40,101,236,.14) !important; }
+        #loginOverlay form input::placeholder { color:#7c89a6; }
+        #loginOverlay form button[type="button"] { right:17px !important; top:50% !important; transform:translateY(-50%); color:#53648b !important; }
+        #btnLogin {
+            min-height:64px; margin-top:4px; border:1px solid rgba(255,255,255,.9) !important; border-radius:24px !important;
+            background:linear-gradient(110deg,#2878f4 0%,#2865ec 58%,#2545bd 100%) !important;
+            box-shadow:0 13px 25px rgba(40,101,236,.24),inset 0 2px 2px rgba(255,255,255,.4) !important;
+            font-size:18px; letter-spacing:.2px;
+        }
+        #btnLogin:hover { filter:brightness(1.05); }
+        #loginOverlay > div > div:last-child { color:#53648b !important; }
+
+        /* Admin workspace */
+        #mainApp { min-height:100vh; background:#eef2fb !important; }
+        #mainApp.hidden { display:none !important; }
+        #mainApp aside {
+            width:270px; min-width:270px; background:linear-gradient(180deg,#18264c 0%,#111d3d 100%) !important;
+            border-right:1px solid rgba(255,255,255,.08) !important; box-shadow:8px 0 28px rgba(30,48,91,.10);
+        }
+        #mainApp aside > div:first-child > div:first-child {
+            background:linear-gradient(135deg,#2865ec,#2545bd) !important; border-color:rgba(255,255,255,.12) !important;
+            min-height:94px;
+        }
+        #mainApp aside nav { padding:18px 13px !important; }
+        #mainApp aside .nav-item { min-height:46px; border:1px solid transparent; border-radius:14px !important; line-height:1.35; text-align:left; }
+        #mainApp aside .nav-item:hover { background:rgba(255,255,255,.10) !important; }
+        #mainApp aside .nav-item.bg-slate-800 { background:linear-gradient(100deg,#2865ec,#354fd0) !important; box-shadow:0 7px 16px rgba(22,74,201,.25); }
+        #mainApp aside .nav-item i { flex:0 0 20px; text-align:center; }
+        #mainApp aside .nav-item { white-space:normal; }
+        #mainApp aside > div:last-child { border-color:rgba(255,255,255,.12) !important; }
+        #mainApp main { min-width:0; min-height:100vh; background:#eef2fb; }
+        #mainApp header.glass-header {
+            background:rgba(255,255,255,.88) !important; color:#17244a !important;
+            border-bottom:1px solid #e0e7f5; box-shadow:0 5px 20px rgba(34,55,103,.06) !important;
+            backdrop-filter:blur(14px); min-height:72px;
+        }
+        #mainApp header #pageTitle { color:#17244a !important; font-size:clamp(16px,2vw,21px); }
+        #mainApp header #currentDateDisplay { background:#edf2ff !important; border-color:#dce5fb !important; color:#53648b !important; }
+        #mainApp header button[onclick="refreshData()"] { background:linear-gradient(110deg,#2878f4,#334bd6) !important; color:white !important; border-radius:12px !important; min-height:40px; }
+        #mainApp main > div.p-4 { padding:clamp(14px,2.2vw,30px) !important; }
+        #mainApp .tab-content > div > div, #mainApp .tab-content .bg-white {
+            border-color:#e2e9f6 !important; box-shadow:0 7px 22px rgba(40,61,111,.055) !important;
+        }
+        #mainApp .tab-content .rounded-2xl { border-radius:19px !important; }
+        #mainApp .tab-content input, #mainApp .tab-content select, #mainApp .tab-content textarea {
+            min-width:0; max-width:100%;
+        }
+        #mainApp table { width:100%; border-collapse:separate; border-spacing:0; }
+        #mainApp .overflow-x-auto { max-width:100%; -webkit-overflow-scrolling:touch; }
+        #mainApp canvas { max-width:100%; }
+        .mobile-menu-btn { display:none; width:40px; height:40px; flex:0 0 40px; align-items:center; justify-content:center; border-radius:12px; background:#edf2ff; color:#2858d9; }
+        .mobile-nav-backdrop { display:none; }
+
+        @media (max-width: 767px) {
+            body { min-height:100dvh; }
+            #mainApp { display:flex; flex-direction:column !important; min-height:100dvh; }
+            #mainApp aside {
+                position:fixed; z-index:60; inset:0 auto 0 0; width:min(84vw,310px) !important; min-width:0 !important;
+                height:100dvh; overflow-y:auto; transform:translateX(-105%); transition:transform .28s ease;
+                box-shadow:18px 0 40px rgba(12,25,60,.25);
+            }
+            body.mobile-nav-open #mainApp aside { transform:translateX(0); }
+            .mobile-nav-backdrop { position:fixed; z-index:55; inset:0; background:rgba(10,20,45,.48); backdrop-filter:blur(2px); }
+            body.mobile-nav-open .mobile-nav-backdrop { display:block; }
+            .mobile-menu-btn { display:inline-flex; }
+            #mainApp main { width:100%; min-height:100dvh; overflow-x:hidden; }
+            #mainApp header.glass-header { padding:11px 13px !important; min-height:64px; gap:8px; }
+            #mainApp header .flex.items-center.gap-4 { gap:7px !important; }
+            #mainApp header button[onclick="refreshData()"] { padding:9px 11px !important; font-size:11px; white-space:nowrap; }
+            #mainApp header button[onclick="refreshData()"] i { margin:0 !important; }
+            #mainApp main > div.p-4 { padding:13px !important; }
+            #mainApp .grid { min-width:0; }
+            #mainApp .tab-content { min-width:0; }
+            #mainApp .tab-content .grid { gap:12px !important; }
+            #mainApp .tab-content .p-5, #mainApp .tab-content .p-6 { padding:15px !important; }
+            #mainApp .tab-content h3 { overflow-wrap:anywhere; }
+            #mainApp table { min-width:620px; }
+            #loginOverlay { align-items:center; }
+            #loginOverlay > div { border-radius:27px !important; }
+            #loginOverlay form input { min-height:56px; }
+        }
+        @media (max-width: 380px) {
+            #mainApp header #pageTitle { max-width:42vw; font-size:15px; }
+            #mainApp header button[onclick="refreshData()"] { padding:8px !important; font-size:10px; }
+            #loginOverlay > div { padding:22px 18px !important; }
+            #loginOverlay h2 { font-size:26px !important; }
+        }
+        @media (min-width:768px) {
+            #mainApp aside { position:sticky; top:0; height:100vh; overflow-y:auto; }
+            #mainApp main { height:100vh; overflow-y:auto; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
+        }
+
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased text-slate-800">
+
+    <!-- LOGIN OVERLAY -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-8 border-emerald transition-all duration-300">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+    <img
+        src="https://cdn.phototourl.com/member/2026-10-14-3d7b029b-1d76-4643-8716-33369ded29c5.png"
+        alt="Logo Santri Menabung"
+        class="w-full h-full object-contain"
+    >
+</div>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">SANTRI MENABUNG</h2>
+                <p class="text-sm text-slate-500 mt-1">Sistem Tabungan Digital Dayah Babul Maghfirah</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Username Admin</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-4 top-3.5 text-slate-400"></i>
+                        <input type="text" id="loginUsername" required class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald focus:border-emerald outline-none transition" placeholder="Masukkan username">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-4 top-3.5 text-slate-400"></i>
+                        <input type="password" id="loginPassword" required class="w-full pl-11 pr-12 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald focus:border-emerald outline-none transition" placeholder="••••••••">
+                        <button type="button" onclick="togglePassword('loginPassword', 'iconLoginPassword')" class="absolute right-4 top-3.5 text-slate-400 hover:text-emerald transition" title="Tampilkan Password" aria-label="Tampilkan atau sembunyikan password">
+                            <i id="iconLoginPassword" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="loginError" class="hidden p-3 rounded-xl bg-red-50 text-red-600 text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span id="loginErrorText">Username atau password salah!</span>
+                </div>
+                <button type="submit" id="btnLogin" class="w-full py-3.5 px-4 bg-emerald hover:bg-emerald-dark text-white font-bold rounded-xl shadow-lg shadow-emerald/30 transition transform active:scale-95 flex justify-center items-center gap-2">
+                    <span>Masuk ke Dashboard</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-400">
+                &copy; Dayah Babul Maghfirah &bull; Hak Akses Tunggal Admin
+            </div>
+        </div>
+    </div>
+
+    <!-- Backdrop navigasi untuk perangkat mobile -->
+    <div id="mobileNavBackdrop" class="mobile-nav-backdrop" onclick="closeMobileNav()"></div>
+
+    <!-- MAIN APP STRUCTURE (Hidden until login) -->
+    <div id="mainApp" class="hidden min-h-screen flex flex-col md:flex-row bg-slate-100">
+
+        <!-- SIDEBAR -->
+        <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between no-print border-r border-slate-800">
+            <div>
+                <!-- Brand Logo -->
+             <div class="p-6 bg-emerald flex items-center gap-3 border-b border-emerald-dark">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
+    <img
+        src="https://cdn.phototourl.com/member/2026-10-14-3d7b029b-1d76-4643-8716-33369ded29c5.png"
+        alt="Logo Dayah Babul Magfirah"
+        class="w-full h-full object-contain p-1"
+    >
+</div>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-white leading-tight tracking-wide text-base">SANTRI MENABUNG</h1>
+                        <p class="text-[11px] text-emerald-soft font-light">Dayah Babul Maghfirah</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="p-4 space-y-1.5 text-sm font-medium">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-chart-pie w-5 text-gold"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('santri')" id="nav-santri" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-users w-5 text-emerald-400"></i> Data Santri
+                    </button>
+                    <button onclick="switchTab('setor')" id="nav-setor" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-circle-arrow-down w-5 text-green-400"></i> Setor Uang
+                    </button>
+                    <button onclick="switchTab('tarik')" id="nav-tarik" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-qrcode w-5 text-gold"></i> Setoran &amp; Penarikan (Scan QR)
+                    </button>
+                    <button onclick="switchTab('riwayat')" id="nav-riwayat" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-clock-rotate-left w-5 text-blue-400"></i> Riwayat Transaksi
+                    </button>
+                    <button onclick="switchTab('laporan')" id="nav-laporan" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-file-invoice-dollar w-5 text-purple-400"></i> Laporan Keuangan
+                    </button>
+                    <button onclick="switchTab('kartu')" id="nav-kartu" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-id-card w-5 text-amber-400"></i> Kartu Tabungan
+                    </button>
+                    <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-gear w-5 text-slate-400"></i> Pengaturan
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Admin Profile Footbar -->
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/60">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald flex items-center justify-center text-xs font-bold">ADM</div>
+                        <div class="text-xs">
+                            <p class="font-bold text-white" id="adminDisplayName">Admin Utama</p>
+                            <p class="text-slate-400">Administrator</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" title="Keluar" class="p-2 text-slate-400 hover:text-red-400 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Top Navbar Mobile / Header Desktop -->
+            <header class="glass-header text-white p-4 shadow-md flex items-center justify-between sticky top-0 z-30 no-print">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button type="button" id="mobileMenuBtn" onclick="toggleMobileNav()" class="mobile-menu-btn" aria-label="Buka menu navigasi" title="Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="pageTitle" class="text-xl font-bold tracking-tight truncate">Dashboard Overview</h2>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-medium">
+                    <span id="currentDateDisplay" class="hidden sm:inline bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+                        <i class="fa-solid fa-calendar-day mr-1 text-gold"></i> --/--/----
+                    </span>
+                    <button onclick="refreshData()" class="px-3 py-1.5 bg-gold hover:bg-gold-dark text-slate-900 rounded-lg font-bold flex items-center gap-2 shadow-sm transition">
+                        <i class="fa-solid fa-rotate"></i> Sync Data
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB CONTENTS -->
+            <div class="p-4 md:p-8 space-y-6">
+
+                <!-- TAB 1: DASHBOARD -->
+                <section id="tab-dashboard" class="tab-content space-y-6">
+                    <!-- Key Stats Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="p-3.5 bg-emerald/10 text-emerald rounded-2xl">
+                                <i class="fa-solid fa-user-graduate text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Santri</p>
+                                <h3 id="statTotalSantri" class="text-2xl font-extrabold text-slate-800">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="p-3.5 bg-amber-500/10 text-amber-600 rounded-2xl">
+                                <i class="fa-solid fa-vault text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Saldo</p>
+                                <h3 id="statTotalSaldo" class="text-lg font-extrabold text-slate-800">Rp 0</h3>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="p-3.5 bg-green-500/10 text-green-600 rounded-2xl">
+                                <i class="fa-solid fa-arrow-down text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Masuk Hari Ini</p>
+                                <h3 id="statMasukHariIni" class="text-lg font-extrabold text-green-600">Rp 0</h3>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="p-3.5 bg-red-500/10 text-red-600 rounded-2xl">
+                                <i class="fa-solid fa-arrow-up text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Keluar Hari Ini</p>
+                                <h3 id="statKeluarHariIni" class="text-lg font-extrabold text-red-600">Rp 0</h3>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="p-3.5 bg-blue-500/10 text-blue-600 rounded-2xl">
+                                <i class="fa-solid fa-receipt text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Transaksi Today</p>
+                                <h3 id="statTransaksiToday" class="text-2xl font-extrabold text-slate-800">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart & Quick Actions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Monthly Graph -->
+                        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-line text-emerald"></i> Grafik Transaksi Bulanan
+                                </h4>
+                                <span class="text-xs text-slate-400">Pemasukan vs Pengeluaran</span>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="chartBulanan"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                    <i class="fa-solid fa-bolt text-gold"></i> Akses Cepat
+                                </h4>
+                                <div class="space-y-3">
+                                    <button onclick="switchTab('setor')" class="w-full p-3.5 bg-emerald/5 hover:bg-emerald/10 border border-emerald/20 text-emerald font-bold rounded-xl flex items-center gap-3 transition">
+                                        <i class="fa-solid fa-circle-plus text-xl"></i>
+                                        <div class="text-left">
+                                            <p class="text-sm">Setor Uang Santri</p>
+                                            <p class="text-xs font-normal text-slate-500">Tambah tabungan santri baru/lama</p>
+                                        </div>
+                                    </button>
+
+                                    <button onclick="switchTab('tarik')" class="w-full p-3.5 bg-gold/10 hover:bg-gold/20 border border-gold/30 text-amber-800 font-bold rounded-xl flex items-center gap-3 transition">
+                                        <i class="fa-solid fa-qrcode text-xl text-amber-700"></i>
+                                        <div class="text-left">
+                                            <p class="text-sm">Setor / Tarik (Scan QR)</p>
+                                            <p class="text-xs font-normal text-slate-600">Transaksi melalui kartu QR santri</p>
+                                        </div>
+                                    </button>
+
+                                    <button onclick="switchTab('santri')" class="w-full p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-3 transition">
+                                        <i class="fa-solid fa-user-plus text-xl text-slate-600"></i>
+                                        <div class="text-left">
+                                            <p class="text-sm">Tambah Santri Baru</p>
+                                            <p class="text-xs font-normal text-slate-500">Registrasi santri & akun tabungan</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 flex items-center gap-3">
+                                <i class="fa-solid fa-shield-halved text-2xl text-emerald"></i>
+                                <span>Seluruh data transaksi dikunci oleh sistem server untuk keamanan tinggi.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-emerald"></i> Transaksi Terakhir
+                            </h4>
+                            <button onclick="switchTab('riwayat')" class="text-xs text-emerald font-bold hover:underline">
+                                Lihat Semua <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    <tr>
+                                        <th class="p-4">No. Transaksi</th>
+                                        <th class="p-4">Waktu</th>
+                                        <th class="p-4">Santri</th>
+                                        <th class="p-4">Jenis</th>
+                                        <th class="p-4 text-right">Nominal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentTransactionsTable" class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td colspan="5" class="p-6 text-center text-slate-400">Memuat data transaksi...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: DATA SANTRI -->
+                <section id="tab-santri" class="tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <div class="relative w-full md:w-96">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                            <input type="text" id="searchSantriInput" oninput="renderSantriTable()" placeholder="Cari NIS, Nama, Kelas, Rekening..." class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-emerald text-sm">
+                        </div>
+                        <button onclick="openModalSantri()" class="w-full md:w-auto px-5 py-2.5 bg-emerald text-white rounded-xl font-bold shadow-md hover:bg-emerald-dark transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-plus"></i> Tambah Santri Baru
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    <tr>
+                                        <th class="p-4">NIS</th>
+                                        <th class="p-4">Nama Lengkap</th>
+                                        <th class="p-4">No. Rekening</th>
+                                        <th class="p-4">Kelas / Halaqah</th>
+                                        <th class="p-4">Wali Santri</th>
+                                        <th class="p-4">Saldo</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="santriTableBody" class="divide-y divide-slate-100">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: SETOR UANG -->
+                <section id="tab-setor" class="tab-content hidden space-y-6">
+                    <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200/80 shadow-md">
+                        <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800">Formulir Penyimpanan Uang</h3>
+                                <p class="text-xs text-slate-500 mt-1">Setor uang tabungan santri secara resmi</p>
+                            </div>
+                            <span class="px-3 py-1 bg-green-100 text-green-700 font-bold text-xs rounded-full">SETOR</span>
+                        </div>
+
+                        <form id="formSetor" onsubmit="submitSetor(event)" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-2">Pilih Santri</label>
+                                <select id="setorSantriSelect" required onchange="onSetorSantriChange()" class="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald outline-none text-sm">
+                                    <option value="">-- Pilih Santri --</option>
+                                </select>
+                            </div>
+
+                            <!-- Preview Santri Info -->
+                            <div id="setorSantriInfo" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-2 gap-4 text-xs">
+                                <div>
+                                    <span class="text-slate-400">NIS:</span>
+                                    <p id="setorNis" class="font-bold text-slate-800">-</p>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400">No. Rekening:</span>
+                                    <p id="setorRek" class="font-bold text-emerald">-</p>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400">Saldo Saat Ini:</span>
+                                    <p id="setorSaldoCurrent" class="font-bold text-slate-800 text-sm">Rp 0</p>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400">Kelas / Halaqah:</span>
+                                    <p id="setorKelas" class="font-bold text-slate-800">-</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-2">Nominal Setoran (Rp)</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3.5 font-bold text-slate-400">Rp</span>
+                                    <input type="text" inputmode="numeric" autocomplete="off" id="setorNominal" oninput="formatNominalInput(this)" required class="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald font-bold text-lg text-slate-800 outline-none" placeholder="10.000">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-2">Keterangan / Catatan</label>
+                                <input type="text" id="setorKeterangan" class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none" placeholder="Contoh: Titipan Wali / Saku Bulanan">
+                            </div>
+
+                            <button type="submit" id="btnSubmitSetor" class="w-full py-3.5 bg-emerald hover:bg-emerald-dark text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check-circle text-lg"></i> Confirm & Simpan Penyimpanan
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- TAB 4: TARIK UANG (SCAN QR) -->
+                <section id="tab-tarik" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Scanner Area -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-md flex flex-col items-center">
+                            <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-qrcode text-emerald"></i> Scanner Kartu Santri
+                            </h3>
+                            <p class="text-xs text-slate-500 mb-4 text-center">Arahkan QR Code Kartu Tabungan Santri ke Kamera</p>
+
+                            <!-- QR Camera Container -->
+                            <div class="w-full max-w-sm aspect-square bg-slate-900 rounded-2xl overflow-hidden relative shadow-inner flex items-center justify-center border-4 border-slate-100">
+                                <div id="reader" class="w-full h-full"></div>
+                            </div>
+
+                            <!-- CARI KODE INI DI HTML (SEKITAR TAB 4): -->
+<div class="flex gap-3 mt-4 w-full max-w-sm">
+    <button onclick="startCamera()" class="flex-1 py-2.5 bg-emerald text-white rounded-xl font-bold text-xs shadow hover:bg-emerald-dark transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-camera"></i> Buka Kamera
+    </button>
+    <button onclick="stopCamera()" class="flex-1 py-2.5 bg-slate-200 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-300 transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-camera-rotate"></i> Stop Kamera
+    </button>
+</div>
+
+<!-- TEMPELKAN KODE BARU TEPAT DI SINI (DI BAWAH KODE DI ATAS): -->
+<input type="file" id="qrFileInput" accept="image/*" capture="environment" class="hidden" onchange="scanQrFromFile(event)">
+
+<button type="button" onclick="document.getElementById('qrFileInput').click()" class="w-full max-w-sm mt-3 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs shadow hover:bg-blue-700 transition flex items-center justify-center gap-2">
+    <i class="fa-solid fa-image"></i> Ambil Foto / Upload Gambar QR
+</button>
+                            <div class="mt-6 w-full max-w-sm">
+                                <label class="block text-xs font-semibold text-slate-500 mb-2">Atau Masukkan Nomor Rekening Manual:</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="manualRekInput" placeholder="Contoh: REK-202601" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none">
+                                    <button onclick="cariSantriByRekening()" class="px-4 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900">
+                                        Cari
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Withdrawal Confirmation Form -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-md">
+                            <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-slate-800">Verifikasi Transaksi</h3>
+                                <span id="tarikTypeBadge" class="px-3 py-1 bg-red-100 text-red-700 font-bold text-xs rounded-full">TARIK</span>
+                            </div>
+
+                            <div id="tarikSantriCard" class="hidden space-y-4">
+                                <div class="p-4 rounded-2xl bg-emerald-soft border border-emerald/20 flex items-center gap-4">
+                                    <div id="tarikQrView" class="w-16 h-16 bg-white p-1 rounded-xl shadow-sm border"></div>
+                                    <div>
+                                        <h4 id="tarikNamaSantri" class="font-extrabold text-slate-900 text-base">Nama Santri</h4>
+                                        <p id="tarikNisSantri" class="text-xs text-slate-600">NIS: -</p>
+                                        <p id="tarikRekSantri" class="text-xs font-bold text-emerald">REK: -</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border text-xs">
+                                    <div>
+                                        <span class="text-slate-400">Saldo Saat Ini:</span>
+                                        <p id="tarikSaldoCurrent" class="text-base font-extrabold text-slate-800">Rp 0</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400">Estimasi Saldo Akhir:</span>
+                                        <p id="tarikSaldoAfter" class="text-base font-extrabold text-red-600">Rp 0</p>
+                                    </div>
+                                </div>
+
+                                <form id="formTarik" onsubmit="submitTarik(event)" class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Jenis Transaksi</label>
+                                        <select id="qrTransactionType" onchange="onQrTransactionTypeChange()" required class="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald outline-none text-sm">
+                                            <option value="TARIK" selected>Penarikan Uang</option>
+                                            <option value="SETOR">Setoran Uang</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label id="tarikNominalLabel" class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nominal Penarikan (Rp)</label>
+                                        <div class="relative">
+                                            <span class="absolute left-4 top-3.5 font-bold text-slate-400">Rp</span>
+                                            <input type="text" inputmode="numeric" autocomplete="off" id="tarikNominal" oninput="formatNominalInput(this); calculateTarikSaldo();" required class="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-red-500 font-bold text-lg text-slate-800 outline-none" placeholder="10.000">
+                                        </div>
+                                    </div>
+
+                                    <div id="tarikPenerimaWrap">
+                                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Penerima / Pengambil</label>
+                                        <input type="text" id="tarikPenerima" required class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none" placeholder="Nama Santri / Wali">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Keterangan</label>
+                                        <input type="text" id="tarikKeterangan" class="w-full p-3 rounded-xl border border-slate-200 text-sm outline-none" placeholder="Contoh: Beli Kitab / Uang Saku">
+                                    </div>
+
+                                    <button type="submit" id="btnSubmitTarik" class="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-hand-holding-dollar"></i> Proses Penarikan Uang
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div id="tarikEmptyState" class="py-12 text-center text-slate-400">
+                                <i class="fa-solid fa-qrcode text-5xl mb-3 text-slate-300"></i>
+                                <p class="text-sm font-medium">Scan QR Code atau cari rekening santri untuk memulai transaksi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: RIWAYAT TRANSAKSI -->
+                <section id="tab-riwayat" class="tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <input type="date" id="filterTglMulai" onchange="renderRiwayatTable()" class="p-2.5 rounded-xl border border-slate-200 text-xs">
+                            <input type="date" id="filterTglSelesai" onchange="renderRiwayatTable()" class="p-2.5 rounded-xl border border-slate-200 text-xs">
+                            <select id="filterJenisTx" onchange="renderRiwayatTable()" class="p-2.5 rounded-xl border border-slate-200 text-xs">
+                                <option value="ALL">Semua Jenis</option>
+                                <option value="SETOR">Setor</option>
+                                <option value="TARIK">Tarik</option>
+                            </select>
+                        </div>
+                        <div class="relative w-full md:w-72">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchRiwayatInput" oninput="renderRiwayatTable()" placeholder="Cari Kode, Nama..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs outline-none">
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    <tr>
+                                        <th class="p-4">No. Transaksi</th>
+                                        <th class="p-4">Tanggal & Waktu</th>
+                                        <th class="p-4">Santri</th>
+                                        <th class="p-4">Jenis</th>
+                                        <th class="p-4">Nominal</th>
+                                        <th class="p-4">Saldo Sebelum/Sesudah</th>
+                                        <th class="p-4">Admin</th>
+                                        <th class="p-4 text-center">Cetak</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="riwayatTableBody" class="divide-y divide-slate-100">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 6: LAPORAN KEUANGAN -->
+                <section id="tab-laporan" class="tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <h3 class="text-lg font-bold text-slate-800">Rekapitulasi Keuangan</h3>
+                        <div class="flex gap-2">
+                            <button onclick="exportExcel()" class="px-4 py-2.5 bg-emerald text-white rounded-xl font-bold text-xs shadow hover:bg-emerald-dark transition flex items-center gap-2">
+                                <i class="fa-solid fa-file-excel"></i> Ekspor Excel/CSV
+                            </button>
+                            <button onclick="window.print()" class="px-4 py-2.5 bg-slate-800 text-white rounded-xl font-bold text-xs shadow hover:bg-slate-900 transition flex items-center gap-2">
+                                <i class="fa-solid fa-print"></i> Cetak Laporan
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                            <p class="text-xs text-slate-400 font-bold uppercase">Total Akumulasi Setoran</p>
+                            <h3 id="reportTotalSetor" class="text-2xl font-extrabold text-green-600 mt-2">Rp 0</h3>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                            <p class="text-xs text-slate-400 font-bold uppercase">Total Akumulasi Penarikan</p>
+                            <h3 id="reportTotalTarik" class="text-2xl font-extrabold text-red-600 mt-2">Rp 0</h3>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                            <p class="text-xs text-slate-400 font-bold uppercase">Saldo Kas Tabungan Aktif</p>
+                            <h3 id="reportTotalNetto" class="text-2xl font-extrabold text-emerald mt-2">Rp 0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Print Header for PDF Report -->
+                    <div class="print-only mb-6 text-center border-b pb-4">
+                        <h2 class="text-2xl font-bold text-slate-900">DAYAH BABUL MAGHFIRAH</h2>
+                        <p class="text-sm">LAPORAN REKAPITULASI TABUNGAN SANTRI DIGITAL</p>
+                        <p class="text-xs text-slate-500 mt-1" id="printReportDate">Dicetak Tanggal: -</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
+                                <tr>
+                                    <th class="p-4">No</th>
+                                    <th class="p-4">NIS</th>
+                                    <th class="p-4">Nama Santri</th>
+                                    <th class="p-4">Kelas</th>
+                                    <th class="p-4 text-right">Saldo Saat Ini</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporanSaldoTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- TAB 7: KARTU TABUNGAN -->
+                <section id="tab-kartu" class="tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between no-print">
+                        <div class="w-full md:w-96">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Pilih Santri Untuk Dicetak Kartu:</label>
+                            <select id="kartuSantriSelect" onchange="renderKartuTabungan()" class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                                <option value="">-- Pilih Santri --</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="printKartuTerpilih()" class="px-5 py-2.5 bg-emerald text-white rounded-xl font-bold text-xs shadow hover:bg-emerald-dark transition flex items-center gap-2">
+                                <i class="fa-solid fa-print"></i> Cetak Kartu Terpilih
+                            </button>
+                            <button type="button" onclick="printSemuaKartu()" class="px-5 py-2.5 bg-slate-800 text-white rounded-xl font-bold text-xs shadow hover:bg-slate-900 transition flex items-center gap-2">
+                                <i class="fa-solid fa-users"></i> Cetak Semua Kartu
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Kartu View Box -->
+                    <div class="flex justify-center py-6">
+                        <div id="kartuPassbook" class="w-[420px] h-[260px] bg-gradient-to-br from-emerald-dark via-emerald to-emerald-light text-white rounded-2xl shadow-2xl p-6 relative overflow-hidden border-2 border-gold/40 flex flex-col justify-between">
+                            <!-- Background Islamic Motif SVG Pattern -->
+                            <div class="absolute -right-12 -bottom-12 opacity-10 text-white">
+                                <i class="fa-solid fa-kaaba text-[220px]"></i>
+                            </div>
+
+                            <!-- Header -->
+                            <div class="flex items-center justify-between border-b border-white/20 pb-3 relative z-10">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
+    <img src="https://cdn.phototourl.com/member/2026-10-14-3d7b029b-1d76-4643-8716-33369ded29c5.png" class="w-full h-full object-contain" alt="Logo Dayah">
+</div>
+                                    <div>
+                                        <h4 class="font-extrabold text-sm tracking-wider leading-none">DAYAH BABUL MAGHFIRAH</h4>
+                                        <p class="text-[9px] text-gold font-semibold uppercase mt-0.5 tracking-widest">KARTU TABUNGAN SANTRI</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Body Detail -->
+                            <div class="grid grid-cols-3 gap-2 items-center relative z-10 my-2">
+                                <div class="col-span-2 space-y-1.5">
+                                    <div>
+                                        <p class="text-[9px] uppercase text-emerald-soft tracking-wider">Nama Santri</p>
+                                        <p id="cardNama" class="font-extrabold text-base truncate text-white">---</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <p class="text-[9px] uppercase text-emerald-soft">NIS</p>
+                                            <p id="cardNis" class="font-bold text-xs text-white">---</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] uppercase text-emerald-soft">Kelas</p>
+                                            <p id="cardKelas" class="font-bold text-xs text-white">---</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] uppercase text-emerald-soft">No. Rekening</p>
+                                        <p id="cardRek" class="font-mono font-bold text-xs text-gold">REK-XXXXXX</p>
+                                    </div>
+                                </div>
+
+                                <!-- QR Code Container -->
+                                <div class="flex flex-col items-center justify-center">
+                                    <div id="cardQrContainer" class="bg-white p-2 rounded-xl shadow-md border-2 border-gold/30"></div>
+                                    <span class="text-[8px] text-white/70 mt-1">Imbas QR Rekening</span>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="flex justify-between items-end text-[9px] text-white/60 border-t border-white/10 pt-2 relative z-10">
+                                <span>Pasli, Aceh Besar</span>
+                                <span class="font-bold text-white">SANTRI DIGITAL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Area khusus cetak; diisi otomatis satu atau seluruh kartu santri -->
+                    <div id="kartuPrintArea" class="hidden" aria-hidden="true"></div>
+                </section>
+
+                <!-- TAB 8: PENGATURAN -->
+                <section id="tab-pengaturan" class="tab-content hidden space-y-6">
+                    <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200/80 shadow-md space-y-6">
+                        <h3 class="text-xl font-bold text-slate-800 border-b pb-4">Pengaturan Identitas & Kredensial</h3>
+
+                        <form id="formPengaturan" onsubmit="savePengaturan(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Dayah / Pesantren</label>
+                                <input type="text" id="cfgNamaDayah" value="Dayah Babul Maghfirah" required class="w-full p-3 rounded-xl border text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Ganti Password Admin</label>
+                                <div class="relative">
+                                    <input type="password" id="cfgNewPassword" placeholder="Biarkan kosong jika tidak diubah" class="w-full p-3 pr-12 rounded-xl border text-sm">
+                                    <button type="button" onclick="togglePassword('cfgNewPassword', 'iconCfgPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald transition" title="Tampilkan Password" aria-label="Tampilkan atau sembunyikan password">
+                                        <i id="iconCfgPassword" class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="px-6 py-3 bg-emerald text-white rounded-xl font-bold text-sm shadow hover:bg-emerald-dark transition">
+                                Simpan Perubahan
+                            </button>
+                        </form>
+
+                        <div class="border-t pt-6">
+                            <h4 class="font-bold text-slate-800 text-sm mb-2">Pencadangan Database (Backup Data)</h4>
+                            <p class="text-xs text-slate-500 mb-4">Unduh seluruh snapshot data santri dan riwayat transaksi dalam bentuk JSON.</p>
+                            <button onclick="backupDatabase()" class="px-5 py-2.5 bg-slate-800 text-white font-bold rounded-xl text-xs shadow hover:bg-slate-900 transition flex items-center gap-2">
+                                <i class="fa-solid fa-download"></i> Unduh Backup JSON
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL TAMBAH/EDIT SANTRI -->
+    <div id="modalSantri" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border-t-4 border-emerald">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 id="modalSantriTitle" class="font-bold text-lg text-slate-800">Tambah Santri Baru</h3>
+                <button onclick="closeModalSantri()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="formSantri" onsubmit="saveSantri(event)" class="space-y-4">
+                <input type="hidden" id="santriEditIndex">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">NIS (Nomor Induk)</label>
+                        <input type="text" id="santriNis" required class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Jenis Kelamin</label>
+                        <select id="santriJk" class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Lengkap Santri</label>
+                    <input type="text" id="santriNama" required class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Kelas</label>
+                        <input type="text" id="santriKelas" required class="w-full p-2.5 rounded-xl border text-sm outline-none" placeholder="Contoh: 1 A Ulya">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Halaqah</label>
+                        <input type="text" id="santriHalaqah" class="w-full p-2.5 rounded-xl border text-sm outline-none" placeholder="Contoh: Ust. Ahmad">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Wali</label>
+                        <input type="text" id="santriWali" required class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Kontak Wali (HP)</label>
+                        <input type="text" id="santriKontak" required class="w-full p-2.5 rounded-xl border text-sm outline-none" placeholder="08xxxxxxxxxx">
+                    </div>
+                </div>
+                <div id="saldoAwalField">
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Saldo Awal (Rp)</label>
+                    <input type="text" inputmode="numeric" autocomplete="off" id="santriSaldoAwal" oninput="formatNominalInput(this)" value="0" class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModalSantri()" class="flex-1 py-2.5 bg-slate-200 font-bold text-slate-700 rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-emerald text-white font-bold rounded-xl text-xs shadow hover:bg-emerald-dark">Simpan Santri</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CETAK BUKTI TRANSAKSI (RECEIPT) -->
+    <div id="modalReceipt" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div id="receiptCard" class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center pb-3 border-b mb-4 no-print">
+                <h3 class="font-bold text-slate-800">Bukti Transaksi Ready</h3>
+                <button onclick="closeModalReceipt()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="receiptPreviewArea" class="p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs space-y-2 mb-4">
+                <!-- Receipt content rendered dynamically -->
+            </div>
+            <div class="flex gap-3 no-print">
+                <button onclick="closeModalReceipt()" class="flex-1 py-2.5 bg-slate-200 font-bold text-slate-700 rounded-xl text-xs">Tutup</button>
+                <button onclick="window.print()" class="flex-1 py-2.5 bg-emerald text-white font-bold rounded-xl text-xs shadow hover:bg-emerald-dark flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-print"></i> Cetak Struk
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm pointer-events-none">
+        <i id="toastIcon" class="fas fa-info-circle text-emerald-400 text-base"></i>
+        <span id="toastMsg">Notifikasi</span>
+    </div>
+
+    <!-- Fullscreen Login Loading Overlay -->
+    <div id="loginLoadingOverlay" class="fixed inset-0 bg-emerald-900/90 backdrop-blur-md z-50 flex flex-col items-center justify-center text-white opacity-0 pointer-events-none transition-opacity duration-500">
+        <div class="relative flex items-center justify-center mb-4">
+            <div class="w-16 h-16 border-4 border-emerald-300/30 border-t-emerald-400 rounded-full animate-spin"></div>
+            <i class="fas fa-wallet text-emerald-300 text-xl absolute"></i>
+        </div>
+        <h3 class="text-xl font-bold tracking-wide mb-1">Authenticating...</h3>
+        <p class="text-xs text-emerald-200">Menyiapkan Dashboard Santri Menabung</p>
+    </div>
+
+    <script>
+        // KONFIGURASI WAJIB: tempel URL deployment Web App Apps Script yang berakhiran /exec.
+        const SAKU_CONFIG = { GAS_WEB_APP_URL: 'GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT' };
+        let bridgeFrame = null;
+        let bridgeReady = false;
+        const bridgePending = new Map();
+        function initApiBridge() {
+            if (bridgeFrame) return;
+            if (!SAKU_CONFIG.GAS_WEB_APP_URL || SAKU_CONFIG.GAS_WEB_APP_URL.includes('GANTI_DENGAN')) return;
+            bridgeFrame = document.createElement('iframe');
+            bridgeFrame.id = 'sakuApiBridge';
+            bridgeFrame.title = 'Koneksi API SAKU-SANTRI';
+            bridgeFrame.setAttribute('aria-hidden','true');
+            bridgeFrame.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;border:0;';
+            bridgeFrame.src = SAKU_CONFIG.GAS_WEB_APP_URL + (SAKU_CONFIG.GAS_WEB_APP_URL.includes('?') ? '&' : '?') + 'bridge=1';
+            document.body.appendChild(bridgeFrame);
+        }
+        window.addEventListener('message', function(event) {
+            if (!bridgeFrame || event.source !== bridgeFrame.contentWindow || !event.data) return;
+            const data = event.data;
+            if (data.type === 'SAKU_BRIDGE_READY') { bridgeReady = true; return; }
+            if (data.type !== 'SAKU_BRIDGE_RESPONSE' || !data.requestId) return;
+            const pending = bridgePending.get(data.requestId);
+            if (!pending) return;
+            clearTimeout(pending.timer); bridgePending.delete(data.requestId);
+            if (data.error) pending.reject(new Error(data.error)); else pending.resolve(data.result);
+        });
+        function apiCall(action, args) {
+            return new Promise((resolve,reject) => {
+                if (!bridgeFrame) initApiBridge();
+                if (!bridgeFrame) { reject(new Error('URL Web App Apps Script belum diatur pada SAKU_CONFIG.')); return; }
+                const requestId = 'saku-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                const timer = setTimeout(() => { bridgePending.delete(requestId); reject(new Error('Server tidak merespons dalam 30 detik. Periksa deployment Web App dan koneksi internet.')); },30000);
+                bridgePending.set(requestId,{resolve,reject,timer});
+                bridgeFrame.contentWindow.postMessage({type:'SAKU_BRIDGE_REQUEST',requestId,action,args}, '*');
+            });
+        }
+        window.addEventListener('DOMContentLoaded', initApiBridge);
+
+        // Tampilkan / sembunyikan password pada form login dan pengaturan
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (!input || !icon) return;
+
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+
+            icon.classList.toggle('fa-eye', !isHidden);
+            icon.classList.toggle('fa-eye-slash', isHidden);
+
+            const button = icon.closest('button');
+            if (button) {
+                button.title = isHidden ? 'Sembunyikan Password' : 'Tampilkan Password';
+                button.setAttribute('aria-label', button.title);
+            }
+        }
+
+        // GLOBAL APP STATE — data hanya berasal dari backend Google Sheets.
+        const state = {
+            adminToken: null, adminName: 'Admin', santriList: [], transactions: [],
+            selectedSantriForTarik: null, pendingSetorRequestId: null, pendingQrTxRequestId: null,
+            html5QrCode: null, cameraStarting: false, cameraWindow: null, cameraNonce: null,
+            qrProcessing: false, chartInstance: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
+        };
+
+        // DOM Elements
+        const loginOverlay = document.getElementById('loginOverlay');
+        const mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm');
+        const loginLoadingOverlay = document.getElementById('loginLoadingOverlay');
+
+        function showToast(msg, iconClass = "fa-circle-check text-emerald-400") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMsg.innerText = msg;
+            toastIcon.className = `fas ${iconClass} text-base`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('currentDateDisplay').innerHTML = `<i class="fa-solid fa-calendar-day mr-1 text-gold"></i> ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+            onQrTransactionTypeChange();
+        });
+
+        // Login Handler
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUsername').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            const errBox = document.getElementById('loginError');
+            errBox.classList.add('hidden');
+            loginLoadingOverlay.classList.remove('opacity-0','pointer-events-none');
+            loginLoadingOverlay.classList.add('opacity-100');
+            try {
+                const res = await apiCall('login',[user,pass]);
+                if (res && res.success) {
+                    state.adminToken = res.token; state.adminName = res.username || 'Admin';
+                    completeLogin();
+                } else { errBox.textContent = (res && res.message) || 'Username atau password salah.'; errBox.classList.remove('hidden'); }
+            } catch (err) { errBox.textContent = err.message; errBox.classList.remove('hidden'); }
+            finally { loginLoadingOverlay.classList.remove('opacity-100'); loginLoadingOverlay.classList.add('opacity-0','pointer-events-none'); }
+        }
+
+        function completeLogin() {
+            loginOverlay.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            document.getElementById('adminDisplayName').innerText = state.adminName;
+            showToast("Berhasil masuk ke dashboard!");
+            refreshData();
+        }
+
+        async function handleLogout() {
+            const token = state.adminToken;
+            try { if (token) await apiCall('logout',[token]); } catch (err) { console.warn('Logout server:',err); }
+            state.adminToken = null; state.santriList = []; state.transactions = [];
+            stopCamera(); mainApp.classList.add('hidden'); loginOverlay.classList.remove('hidden');
+            document.getElementById('loginForm').reset(); showToast('Berhasil keluar.');
+        }
+
+        function toggleMobileNav() {
+            document.body.classList.toggle('mobile-nav-open');
+        }
+
+        function closeMobileNav() {
+            document.body.classList.remove('mobile-nav-open');
+        }
+
+        function switchTab(tabId) {
+            closeMobileNav();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-slate-800', 'text-white', 'font-bold');
+                el.classList.add('text-slate-300');
+            });
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            const targetNav = document.getElementById(`nav-${tabId}`);
+
+            if(targetTab) targetTab.classList.remove('hidden');
+            if(targetNav) {
+                targetNav.classList.add('bg-slate-800', 'text-white', 'font-bold');
+                targetNav.classList.remove('text-slate-300');
+            }
+
+            const titles = {
+                dashboard: 'Dashboard Overview',
+                santri: 'Kelola Data Santri',
+                setor: 'Setor Uang Tabungan',
+                tarik: 'Setor & Penarikan (Scan QR)',
+                riwayat: 'Riwayat Transaksi',
+                laporan: 'Laporan Keuangan',
+                kartu: 'Cetak Kartu Tabungan',
+                pengaturan: 'Pengaturan Sistem'
+            };
+            document.getElementById('pageTitle').innerText = titles[tabId] || 'Santri Menabung';
+
+            if(tabId === 'dashboard') initChart();
+            if(tabId === 'santri') renderSantriTable();
+            if(tabId === 'setor') populateSantriSelects();
+            if(tabId === 'tarik') stopCamera();
+            if(tabId === 'riwayat') renderRiwayatTable();
+            if(tabId === 'laporan') renderLaporanTable();
+            if(tabId === 'kartu') populateSantriSelects();
+        }
+
+        async function refreshData() {
+            if (!state.adminToken) return;
+            try {
+                const data = await apiCall('getData',[state.adminToken]);
+                if (!data) throw new Error('Sesi tidak valid atau telah berakhir. Silakan login kembali.');
+                state.santriList = Array.isArray(data.santri) ? data.santri : [];
+                state.transactions = Array.isArray(data.transactions) ? data.transactions : [];
+                state.settings = data.settings || state.settings;
+                const cfgName = document.getElementById('cfgNamaDayah');
+                if (cfgName) cfgName.value = state.settings.namaDayah || 'Dayah Babul Maghfirah';
+                updateDashboardStats(); renderSantriTable(); populateSantriSelects();
+                if (!document.getElementById('tab-dashboard').classList.contains('hidden')) initChart();
+            } catch (err) {
+                showToast(err.message || 'Gagal memuat data dari server.','fa-circle-exclamation text-amber-400');
+                if (/sesi|token/i.test(err.message || '')) handleLogout();
+            }
+        }
+
+        function updateDashboardStats() {
+            const totalSantri = state.santriList.length;
+            const totalSaldo = state.santriList.reduce((acc, curr) => acc + (Number(curr.saldo) || 0), 0);
+
+            const nowLocal = new Date();
+            const todayStr = nowLocal.getFullYear() + '-' + String(nowLocal.getMonth()+1).padStart(2,'0') + '-' + String(nowLocal.getDate()).padStart(2,'0');
+            let masukHariIni = 0;
+            let keluarHariIni = 0;
+            let countToday = 0;
+
+            state.transactions.forEach(t => {
+                if(t.waktu.startsWith(todayStr)) {
+                    countToday++;
+                    if(t.jenis === 'SETOR') masukHariIni += Number(t.nominal);
+                    if(t.jenis === 'TARIK') keluarHariIni += Number(t.nominal);
+                }
+            });
+
+            document.getElementById('statTotalSantri').innerText = totalSantri;
+            document.getElementById('statTotalSaldo').innerText = formatRupiah(totalSaldo);
+            document.getElementById('statMasukHariIni').innerText = formatRupiah(masukHariIni);
+            document.getElementById('statKeluarHariIni').innerText = formatRupiah(keluarHariIni);
+            document.getElementById('statTransaksiToday').innerText = countToday;
+
+            // Render Recent Table (5 rows)
+            const recentBody = document.getElementById('recentTransactionsTable');
+            recentBody.innerHTML = '';
+            const recentTxs = [...state.transactions].reverse().slice(0, 5);
+
+            if(recentTxs.length === 0) {
+                recentBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada transaksi.</td></tr>';
+            } else {
+                recentTxs.forEach(tx => {
+                    const badgeClass = tx.jenis === 'SETOR' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    recentBody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-4 font-mono font-semibold text-slate-700">${tx.id}</td>
+                            <td class="p-4 text-xs text-slate-500">${tx.waktu}</td>
+                            <td class="p-4 font-bold text-slate-800">${tx.nama}</td>
+                            <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${tx.jenis}</span></td>
+                            <td class="p-4 text-right font-bold ${tx.jenis === 'SETOR' ? 'text-green-600' : 'text-red-600'}">${formatRupiah(tx.nominal)}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // Agregasi grafik berdasarkan transaksi riil pada tahun berjalan.
+        function getMonthlyTotals(jenis) {
+            const year = new Date().getFullYear(); const totals = Array(12).fill(0);
+            state.transactions.forEach(tx => {
+                if (tx.jenis !== jenis) return;
+                const m = String(tx.waktu || '').match(/^(\d{4})-(\d{2})/);
+                if (m && Number(m[1]) === year) totals[Number(m[2])-1] += Number(tx.nominal) || 0;
+            });
+            return totals;
+        }
+        // CHART INITIALIZATION
+        function initChart() {
+            const ctx = document.getElementById('chartBulanan').getContext('2d');
+            if(state.chartInstance) state.chartInstance.destroy();
+
+            state.chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+                    datasets: [
+                        { label: 'Setoran (Rp)', data: getMonthlyTotals('SETOR'), backgroundColor: '#0E6B4F', borderRadius: 6 },
+                        { label: 'Penarikan (Rp)', data: getMonthlyTotals('TARIK'), backgroundColor: '#DC2626', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // SANTRI MANAGEMENT
+        function renderSantriTable() {
+            const query = (document.getElementById('searchSantriInput').value || '').toLowerCase();
+            const body = document.getElementById('santriTableBody');
+            body.innerHTML = '';
+
+            const filtered = state.santriList.filter(s => 
+                s.nama.toLowerCase().includes(query) ||
+                s.nis.toLowerCase().includes(query) ||
+                s.rek.toLowerCase().includes(query) ||
+                s.kelas.toLowerCase().includes(query)
+            );
+
+            if(filtered.length === 0) {
+                body.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">Data santri tidak ditemukan.</td></tr>';
+                return;
+            }
+
+            filtered.forEach((s) => {
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-4 font-bold text-slate-800">${s.nis}</td>
+                        <td class="p-4 font-semibold text-slate-900">${s.nama} <br><span class="text-xs font-normal text-slate-400">${s.jk}</span></td>
+                        <td class="p-4 font-mono text-emerald font-bold">${s.rek}</td>
+                        <td class="p-4">${s.kelas} / <span class="text-slate-500">${s.halaqah}</span></td>
+                        <td class="p-4">${s.wali} <br><span class="text-xs text-slate-400">${s.kontak}</span></td>
+                        <td class="p-4 font-bold text-slate-800">${formatRupiah(s.saldo)}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${s.status === 'Aktif' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}">${s.status}</span></td>
+                        <td class="p-4 text-center">
+                            <button onclick="editSantri(${state.santriList.indexOf(s)})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openModalSantri(editIdx = null) {
+            document.getElementById('formSantri').reset();
+            document.getElementById('santriEditIndex').value = '';
+            document.getElementById('saldoAwalField').classList.remove('hidden');
+
+            if(editIdx !== null) {
+                const s = state.santriList[editIdx];
+                document.getElementById('modalSantriTitle').innerText = 'Edit Data Santri';
+                document.getElementById('santriEditIndex').value = s._row || (editIdx + 2);
+                document.getElementById('santriNis').value = s.nis;
+                document.getElementById('santriNis').disabled = true;
+                document.getElementById('santriNama').value = s.nama;
+                document.getElementById('santriJk').value = s.jk;
+                document.getElementById('santriKelas').value = s.kelas;
+                document.getElementById('santriHalaqah').value = s.halaqah;
+                document.getElementById('santriWali').value = s.wali;
+                document.getElementById('santriKontak').value = s.kontak;
+                document.getElementById('saldoAwalField').classList.add('hidden');
+            } else {
+                document.getElementById('modalSantriTitle').innerText = 'Tambah Santri Baru';
+                document.getElementById('santriNis').disabled = false;
+            }
+            document.getElementById('modalSantri').classList.remove('hidden');
+        }
+
+        function closeModalSantri() {
+            document.getElementById('modalSantri').classList.add('hidden');
+        }
+
+        async function saveSantri(e) {
+            e.preventDefault();
+            const editRow = document.getElementById('santriEditIndex').value;
+            const payload = {
+                nis: document.getElementById('santriNis').value.trim(), nama: document.getElementById('santriNama').value.trim(),
+                jk: document.getElementById('santriJk').value, kelas: document.getElementById('santriKelas').value,
+                halaqah: document.getElementById('santriHalaqah').value, wali: document.getElementById('santriWali').value.trim(),
+                kontak: document.getElementById('santriKontak').value.trim(), saldoAwal: parseNominalInput(document.getElementById('santriSaldoAwal').value)
+            };
+            const btn = document.querySelector('#formSantri button[type="submit"]');
+            if (btn) btn.disabled = true;
+            try {
+                const res = await apiCall('saveSantri',[payload,editRow,state.adminToken]);
+                if (!res || !res.success) throw new Error((res && res.message) || 'Data santri gagal disimpan.');
+                closeModalSantri(); await refreshData(); showToast(res.message || 'Data santri berhasil disimpan.');
+            } catch(err) { alert(err.message); }
+            finally { if (btn) btn.disabled = false; }
+        }
+
+        function editSantri(idx) {
+            openModalSantri(idx);
+        }
+
+        function populateSantriSelects() {
+            const setorSel = document.getElementById('setorSantriSelect');
+            const kartuSel = document.getElementById('kartuSantriSelect');
+            setorSel.innerHTML = '<option value="">-- Pilih Santri --</option>';
+            kartuSel.innerHTML = '<option value="">-- Pilih Santri --</option>';
+
+            state.santriList.forEach((s) => {
+                setorSel.innerHTML += `<option value="${s.nis}">${s.nis} - ${s.nama} (${s.kelas})</option>`;
+                kartuSel.innerHTML += `<option value="${s.nis}">${s.nis} - ${s.nama}</option>`;
+            });
+        }
+
+        // Kunci permintaan unik digunakan backend agar klik ulang/retry tidak menggandakan transaksi.
+        function createTransactionRequestId() {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return window.crypto.randomUUID();
+            }
+            return 'REQ-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12);
+        }
+
+        // SETOR UANG LOGIC
+        function onSetorSantriChange() {
+            const nis = document.getElementById('setorSantriSelect').value;
+            const infoBox = document.getElementById('setorSantriInfo');
+            if(!nis) {
+                infoBox.classList.add('hidden');
+                return;
+            }
+
+            const santri = state.santriList.find(s => s.nis === nis);
+            if(santri) {
+                document.getElementById('setorNis').innerText = santri.nis;
+                document.getElementById('setorRek').innerText = santri.rek;
+                document.getElementById('setorSaldoCurrent').innerText = formatRupiah(santri.saldo);
+                document.getElementById('setorKelas').innerText = `${santri.kelas} / ${santri.halaqah}`;
+                infoBox.classList.remove('hidden');
+            }
+        }
+
+        async function submitSetor(e) {
+            e.preventDefault();
+            const nis = document.getElementById('setorSantriSelect').value;
+            const nominal = parseNominalInput(document.getElementById('setorNominal').value);
+            const ket = document.getElementById('setorKeterangan').value;
+            const btn = document.getElementById('btnSubmitSetor');
+            if (btn.disabled) return;
+            if (!nis || !Number.isSafeInteger(nominal) || nominal < 1000 || nominal % 500 !== 0) { alert('Pilih santri dan masukkan nominal minimal Rp1.000 dengan kelipatan Rp500.'); return; }
+            const requestId = state.pendingSetorRequestId || createTransactionRequestId(); state.pendingSetorRequestId = requestId;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            try {
+                const res = await apiCall('transaction',[{nis,jenis:'SETOR',nominal,ket,requestId},state.adminToken]);
+                if (!res || !res.success) { state.pendingSetorRequestId = null; throw new Error((res && res.message) || 'Transaksi setoran gagal.'); }
+                state.pendingSetorRequestId = null; document.getElementById('formSetor').reset();
+                document.getElementById('setorSantriInfo').classList.add('hidden'); showReceipt(res.transaction);
+                showToast(res.duplicate ? 'Transaksi sudah diproses sebelumnya.' : 'Setoran berhasil disimpan.'); await refreshData();
+            } catch(err) { alert(err.message + '\nJika respons server terputus, gunakan tombol proses dengan request yang sama agar tidak terjadi transaksi ganda.'); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-circle text-lg"></i> Confirm & Simpan Penyimpanan'; }
+        }
+
+        // SCAN QR & TARIK UANG LOGIC (Kamera Diperbaiki Untuk Google Apps Script Iframe)
+        // Kamera dijalankan pada halaman GitHub Pages HTTPS terpisah untuk menghindari
+        // pembatasan izin kamera pada iframe Google Apps Script.
+        async function startCamera() {
+            const cameraUrlBase = 'https://nurhaliza7035-lgtm.github.io/nabung/';
+            if (!cameraUrlBase || cameraUrlBase.includes('GANTI_DENGAN_URL')) {
+                alert('Konfigurasikan URL kamera GitHub Pages terlebih dahulu pada variabel cameraUrlBase di fungsi startCamera().');
+                return;
+            }
+
+            if (state.cameraWindow && !state.cameraWindow.closed) {
+                state.cameraWindow.focus();
+                return;
+            }
+
+            const nonce = (window.crypto && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+
+            state.cameraNonce = nonce;
+            const url = cameraUrlBase + '?nonce=' + encodeURIComponent(nonce);
+            state.cameraWindow = window.open(url, 'SantriMenabungCamera', 'popup,width=520,height=760,resizable=yes,scrollbars=yes');
+
+            if (!state.cameraWindow) {
+                alert('Halaman kamera diblokir oleh browser. Izinkan pop-up untuk situs aplikasi ini, lalu klik Buka Kamera kembali.');
+                return;
+            }
+
+            showToast('Halaman kamera dibuka. Izinkan akses kamera jika diminta.', 'fa-camera text-emerald-400');
+        }
+
+        // Hanya menerima hasil dari jendela kamera yang dibuka aplikasi dan nonce yang cocok.
+        window.addEventListener('message', function(event) {
+            if (!state.cameraWindow || event.source !== state.cameraWindow) return;
+            if (!event.data || event.data.type !== 'SANTRI_MENABUNG_QR_RESULT') return;
+            if (event.data.nonce !== state.cameraNonce) return;
+
+            const qrText = String(event.data.value || '').trim();
+            state.cameraNonce = null;
+            state.cameraWindow = null;
+
+            if (!qrText) {
+                showToast('Tidak ada hasil QR yang diterima.', 'fa-circle-exclamation text-amber-400');
+                return;
+            }
+            processQrCodeResult(qrText);
+            showToast('Hasil QR diterima dari kamera.');
+        });
+
+        // CARI FUNGSI INI DI DALAM TAG <script>:
+async function stopCamera() {
+    if (state.cameraWindow && !state.cameraWindow.closed) {
+        try { state.cameraWindow.postMessage({ type: 'SANTRI_MENABUNG_CAMERA_STOP', nonce: state.cameraNonce }, '*'); } catch (_) {}
+        try { state.cameraWindow.close(); } catch (_) {}
+    }
+    state.cameraWindow = null;
+    state.cameraNonce = null;
+
+    const scanner = state.html5QrCode;
+    if (!scanner) return;
+
+    state.html5QrCode = null;
+
+    try {
+        if (scanner.isScanning) {
+            await scanner.stop();
+        }
+    } catch (error) {
+        console.warn('Peringatan saat menghentikan kamera:', error);
+    }
+
+    try {
+        await scanner.clear();
+    } catch (error) {
+        console.warn('Peringatan saat membersihkan scanner:', error);
+    }
+}
+
+// TEMPELKAN KODE BARU TEPAT DI BAWAH FUNGSI stopCamera():
+async function scanQrFromFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    let fileScanner = null;
+    try {
+        await stopCamera();
+        if (typeof Html5Qrcode === 'undefined') {
+            throw new Error('Library pemindai QR belum dimuat.');
+        }
+        fileScanner = new Html5Qrcode('reader');
+        const decodedText = await fileScanner.scanFile(file, true);
+        processQrCodeResult(String(decodedText || '').trim());
+        showToast('QR Code berhasil dibaca!');
+    } catch (err) {
+        alert('QR Code tidak terdeteksi pada gambar. Pastikan foto QR terlihat jelas, terang, dan fokus.');
+        console.error('Gagal scan file QR:', err);
+    } finally {
+        if (fileScanner) {
+            try { await fileScanner.clear(); } catch (clearErr) { console.warn('Gagal membersihkan pemindai gambar:', clearErr); }
+        }
+        event.target.value = '';
+    }
+}
+
+        function cariSantriByRekening() {
+            const rek = document.getElementById('manualRekInput').value.trim();
+            if(!rek) return;
+            processQrCodeResult(rek);
+        }
+
+        function processQrCodeResult(qrText) {
+            // QR pada kartu berisi nomor rekening; NIS juga didukung untuk kompatibilitas.
+            const code = String(qrText || '').trim();
+            const santri = state.santriList.find(s => String(s.rek).trim() === code || String(s.nis).trim() === code);
+            if(!santri) {
+                alert('Rekening / QR Santri tidak ditemukan di database!');
+                return;
+            }
+
+            state.selectedSantriForTarik = santri;
+            document.getElementById('tarikNamaSantri').innerText = santri.nama;
+            document.getElementById('tarikNisSantri').innerText = 'NIS: ' + santri.nis;
+            document.getElementById('tarikRekSantri').innerText = 'REK: ' + santri.rek;
+            document.getElementById('tarikSaldoCurrent').innerText = formatRupiah(santri.saldo);
+            document.getElementById('tarikNominal').value = '';
+            document.getElementById('tarikKeterangan').value = '';
+            document.getElementById('tarikPenerima').value = santri.nama;
+
+            const qrBox = document.getElementById('tarikQrView');
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, { text: santri.rek, width: 56, height: 56 });
+
+            document.getElementById('tarikEmptyState').classList.add('hidden');
+            document.getElementById('tarikSantriCard').classList.remove('hidden');
+            onQrTransactionTypeChange();
+        }
+
+        function onQrTransactionTypeChange() {
+            const typeSelect = document.getElementById('qrTransactionType');
+            if (!typeSelect) return;
+            const jenis = typeSelect.value === 'SETOR' ? 'SETOR' : 'TARIK';
+            const isSetor = jenis === 'SETOR';
+            const badge = document.getElementById('tarikTypeBadge');
+            const label = document.getElementById('tarikNominalLabel');
+            const receiverWrap = document.getElementById('tarikPenerimaWrap');
+            const receiverInput = document.getElementById('tarikPenerima');
+            const button = document.getElementById('btnSubmitTarik');
+            const saldoAfter = document.getElementById('tarikSaldoAfter');
+
+            if (badge) {
+                badge.textContent = isSetor ? 'SETOR' : 'TARIK';
+                badge.className = 'px-3 py-1 font-bold text-xs rounded-full ' + (isSetor ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
+            }
+            if (label) label.textContent = isSetor ? 'Nominal Setoran (Rp)' : 'Nominal Penarikan (Rp)';
+            if (receiverWrap) receiverWrap.classList.toggle('hidden', isSetor);
+            if (receiverInput) receiverInput.required = !isSetor;
+            if (button) {
+                button.innerHTML = isSetor
+                    ? '<i class="fa-solid fa-circle-arrow-down"></i> Proses Setoran Uang'
+                    : '<i class="fa-solid fa-hand-holding-dollar"></i> Proses Penarikan Uang';
+                button.classList.remove('bg-red-600', 'hover:bg-red-700', 'bg-emerald', 'hover:bg-emerald-dark');
+                button.classList.add(...(isSetor ? ['bg-emerald', 'hover:bg-emerald-dark'] : ['bg-red-600', 'hover:bg-red-700']));
+            }
+            if (saldoAfter) {
+                saldoAfter.classList.toggle('text-green-600', isSetor);
+                saldoAfter.classList.toggle('text-red-600', !isSetor);
+            }
+            calculateTarikSaldo();
+        }
+
+        function calculateTarikSaldo() {
+            if(!state.selectedSantriForTarik) return;
+            const jenis = document.getElementById('qrTransactionType').value;
+            const nominal = parseNominalInput(document.getElementById('tarikNominal').value);
+            const current = Number(state.selectedSantriForTarik.saldo) || 0;
+            const after = jenis === 'SETOR' ? current + nominal : current - nominal;
+            document.getElementById('tarikSaldoAfter').innerText = formatRupiah(jenis === 'SETOR' ? after : Math.max(after, 0));
+        }
+
+        async function submitTarik(e) {
+            e.preventDefault();
+            if(!state.selectedSantriForTarik) {
+                alert('Scan QR Code atau cari rekening santri terlebih dahulu.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitTarik');
+            if (btn.disabled) return;
+
+            const santri = state.selectedSantriForTarik;
+            const jenis = document.getElementById('qrTransactionType').value === 'SETOR' ? 'SETOR' : 'TARIK';
+            const nominal = parseNominalInput(document.getElementById('tarikNominal').value);
+            const penerima = document.getElementById('tarikPenerima').value.trim();
+            const ketInput = document.getElementById('tarikKeterangan').value.trim();
+
+            if (!Number.isSafeInteger(nominal) || nominal < 1000 || nominal % 500 !== 0) {
+                alert('Nominal harus minimal Rp1.000 dan kelipatan Rp500.');
+                return;
+            }
+            if (jenis === 'TARIK' && nominal > (Number(santri.saldo) || 0)) {
+                alert('Nominal penarikan melebihi saldo santri saat ini!');
+                return;
+            }
+            if (jenis === 'TARIK' && !penerima) {
+                alert('Nama penerima/pengambil harus diisi.');
+                return;
+            }
+
+            const ket = jenis === 'TARIK'
+                ? [ketInput, 'Penerima: ' + penerima].filter(Boolean).join(' | ')
+                : (ketInput || 'Setoran melalui Scan QR');
+            const requestId = state.pendingQrTxRequestId || createTransactionRequestId();
+            state.pendingQrTxRequestId = requestId;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+
+            const restoreButton = () => {
+                btn.disabled = false;
+                onQrTransactionTypeChange();
+            };
+            const finishSuccess = tx => {
+                state.pendingQrTxRequestId = null;
+                showReceipt(tx);
+                document.getElementById('formTarik').reset();
+                state.selectedSantriForTarik = null;
+                document.getElementById('tarikSantriCard').classList.add('hidden');
+                document.getElementById('tarikEmptyState').classList.remove('hidden');
+                onQrTransactionTypeChange();
+                refreshData();
+            };
+
+            try {
+                const res = await apiCall('transaction',[{ nis: santri.nis, jenis, nominal, ket, requestId }, state.adminToken]);
+                restoreButton();
+                if (res && res.success && res.transaction) {
+                    finishSuccess(res.transaction);
+                    showToast(res.duplicate ? 'Transaksi ini sudah diproses sebelumnya.' : 'Transaksi berhasil disimpan.');
+                } else {
+                    state.pendingQrTxRequestId = null;
+                    alert((res && res.message) || 'Transaksi tidak berhasil diproses.');
+                }
+            } catch (err) {
+                restoreButton();
+                alert('Respons server tidak diterima. Periksa koneksi lalu coba kembali.\n' + err.message);
+            }
+        }
+
+        // RIWAYAT & LAPORAN RENDERING
+        function renderRiwayatTable() {
+            const query = (document.getElementById('searchRiwayatInput').value || '').toLowerCase();
+            const jenis = document.getElementById('filterJenisTx').value;
+            const body = document.getElementById('riwayatTableBody');
+            body.innerHTML = '';
+
+            const filtered = state.transactions.filter(t => {
+                const matchQ = t.id.toLowerCase().includes(query) || t.nama.toLowerCase().includes(query) || t.nis.includes(query);
+                const matchJ = jenis === 'ALL' || t.jenis === jenis;
+                return matchQ && matchJ;
+            });
+
+            if(filtered.length === 0) {
+                body.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">Tidak ada data riwayat transaksi.</td></tr>';
+                return;
+            }
+
+            [...filtered].reverse().forEach(tx => {
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="p-4 font-mono font-bold text-slate-800">${tx.id}</td>
+                        <td class="p-4 text-xs text-slate-500">${tx.waktu}</td>
+                        <td class="p-4 font-bold text-slate-900">${tx.nama} <br><span class="text-xs text-slate-400 font-normal">NIS: ${tx.nis}</span></td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${tx.jenis === 'SETOR' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${tx.jenis}</span></td>
+                        <td class="p-4 font-bold ${tx.jenis === 'SETOR' ? 'text-green-600' : 'text-red-600'}">${formatRupiah(tx.nominal)}</td>
+                        <td class="p-4 text-xs">${formatRupiah(tx.saldoSblm)} &rarr; <span class="font-bold text-slate-800">${formatRupiah(tx.saldoSsdh)}</span></td>
+                        <td class="p-4 text-xs text-slate-500">${tx.admin}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="reprintReceipt('${tx.id}')" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fa-solid fa-print"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderLaporanTable() {
+            const body = document.getElementById('laporanSaldoTableBody');
+            body.innerHTML = '';
+
+            let totalSetorAcc = 0;
+            let totalTarikAcc = 0;
+
+            state.transactions.forEach(t => {
+                if(t.jenis === 'SETOR') totalSetorAcc += Number(t.nominal);
+                if(t.jenis === 'TARIK') totalTarikAcc += Number(t.nominal);
+            });
+
+            document.getElementById('reportTotalSetor').innerText = formatRupiah(totalSetorAcc);
+            document.getElementById('reportTotalTarik').innerText = formatRupiah(totalTarikAcc);
+            document.getElementById('reportTotalNetto').innerText = formatRupiah(totalSetorAcc - totalTarikAcc);
+            document.getElementById('printReportDate').innerText = 'Dicetak Tanggal: ' + new Date().toLocaleString('id-ID');
+
+            state.santriList.forEach((s, idx) => {
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="p-4 text-xs">${idx + 1}</td>
+                        <td class="p-4 font-bold text-slate-800">${s.nis}</td>
+                        <td class="p-4 font-semibold text-slate-900">${s.nama}</td>
+                        <td class="p-4 text-xs text-slate-500">${s.kelas}</td>
+                        <td class="p-4 text-right font-bold text-emerald">${formatRupiah(s.saldo)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // PASSBOOK CARD GENERATOR
+        function renderKartuTabungan() {
+            const select = document.getElementById('kartuSantriSelect');
+            const nis = select ? select.value : '';
+            if (!nis) return;
+
+            const santri = state.santriList.find(s => String(s.nis) === String(nis));
+            if (!santri) return;
+
+            document.getElementById('cardNama').innerText = santri.nama || '-';
+            document.getElementById('cardNis').innerText = santri.nis || '-';
+            document.getElementById('cardKelas').innerText = santri.kelas || '-';
+            document.getElementById('cardRek').innerText = santri.rek || santri.nis || '-';
+
+            const qrBox = document.getElementById('cardQrContainer');
+            qrBox.innerHTML = '';
+            const qrValue = String(santri.rek || santri.nis || '').trim();
+            if (qrValue && typeof QRCode !== 'undefined') {
+                new QRCode(qrBox, { text: qrValue, width: 72, height: 72 });
+            } else {
+                qrBox.textContent = 'QR tidak tersedia';
+            }
+        }
+
+        // Membuat salinan kartu dari desain utama agar desain semua kartu konsisten.
+        function buatElemenKartuCetak(santri) {
+            const template = document.getElementById('kartuPassbook');
+            if (!template || !santri) return null;
+
+            const card = template.cloneNode(true);
+            card.removeAttribute('id');
+            card.classList.remove('hidden');
+            card.classList.add('print-student-card');
+            card.style.display = 'flex';
+
+            const setText = (id, value) => {
+                const el = card.querySelector('#' + id);
+                if (el) {
+                    el.removeAttribute('id');
+                    el.textContent = value == null || value === '' ? '-' : String(value);
+                }
+            };
+
+            setText('cardNama', santri.nama);
+            setText('cardNis', santri.nis);
+            setText('cardKelas', santri.kelas);
+            setText('cardRek', santri.rek || santri.nis);
+
+            const qrBox = card.querySelector('#cardQrContainer');
+            if (qrBox) {
+                qrBox.removeAttribute('id');
+                qrBox.innerHTML = '';
+                const qrValue = String(santri.rek || santri.nis || '').trim();
+                if (qrValue && typeof QRCode !== 'undefined') {
+                    new QRCode(qrBox, { text: qrValue, width: 72, height: 72 });
+                } else {
+                    qrBox.textContent = 'QR tidak tersedia';
+                }
+            }
+            return card;
+        }
+
+        function jalankanCetakKartu(daftarSantri) {
+            const printArea = document.getElementById('kartuPrintArea');
+            if (!printArea) {
+                alert('Area cetak kartu tidak ditemukan. Muat ulang aplikasi.');
+                return;
+            }
+            if (!Array.isArray(daftarSantri) || daftarSantri.length === 0) {
+                alert('Tidak ada data santri yang dapat dicetak.');
+                return;
+            }
+
+            printArea.innerHTML = '';
+            daftarSantri.forEach(santri => {
+                const card = buatElemenKartuCetak(santri);
+                if (card) printArea.appendChild(card);
+            });
+
+            if (!printArea.children.length) {
+                alert('Kartu santri gagal disiapkan untuk dicetak.');
+                return;
+            }
+
+            document.body.classList.add('print-kartu');
+            // Beri waktu browser membuat QR Code dan memuat logo sebelum dialog cetak.
+            const restorePrintMode = () => {
+                window.removeEventListener('afterprint', restorePrintMode);
+                document.body.classList.remove('print-kartu');
+                printArea.innerHTML = '';
+            };
+            window.addEventListener('afterprint', restorePrintMode, { once: true });
+
+            setTimeout(() => {
+                window.print();
+                // Fallback jika browser tidak mengirim event afterprint.
+                setTimeout(() => {
+                    if (document.body.classList.contains('print-kartu')) restorePrintMode();
+                }, 1500);
+            }, 500);
+        }
+
+        function printKartuTerpilih() {
+            const select = document.getElementById('kartuSantriSelect');
+            const nis = select ? select.value : '';
+            if (!nis) {
+                alert('Silakan pilih santri terlebih dahulu untuk mencetak kartu.');
+                return;
+            }
+            const santri = state.santriList.find(s => String(s.nis) === String(nis));
+            if (!santri) {
+                alert('Data santri yang dipilih tidak ditemukan.');
+                return;
+            }
+            jalankanCetakKartu([santri]);
+        }
+
+        function printSemuaKartu() {
+            const daftar = (state.santriList || []).filter(s => s && s.status !== 'Nonaktif');
+            if (!daftar.length) {
+                alert('Belum ada data santri aktif untuk dicetak.');
+                return;
+            }
+            jalankanCetakKartu(daftar);
+        }
+
+        // RECEIPT & PRINT HELPERS
+        function escapeReceiptText(value) {
+            return String(value == null ? '-' : value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+
+        function showReceipt(tx) {
+            const preview = document.getElementById('receiptPreviewArea');
+            const modal = document.getElementById('modalReceipt');
+            if (!preview || !modal || !tx) {
+                alert('Data struk transaksi tidak tersedia. Silakan muat ulang data transaksi.');
+                return;
+            }
+
+            const jenis = String(tx.jenis || '').toUpperCase();
+            const nominal = parseNominalInput(tx.nominal);
+            const saldoSblm = parseNominalInput(tx.saldoSblm);
+            const saldoSsdh = parseNominalInput(tx.saldoSsdh);
+
+            preview.innerHTML = `
+                <div class="text-center font-bold text-sm mb-2">${escapeReceiptText(state.settings.namaDayah || 'DAYAH BABUL MAGHFIRAH')}</div>
+                <div class="text-center text-[10px] text-slate-500 border-b pb-2 mb-2">BUKTI TRANSAKSI TABUNGAN DIGITAL</div>
+                <div class="flex justify-between gap-3"><span>No. Tx:</span><span class="font-bold text-right break-all">${escapeReceiptText(tx.id)}</span></div>
+                <div class="flex justify-between gap-3"><span>Waktu:</span><span class="text-right">${escapeReceiptText(tx.waktu)}</span></div>
+                <div class="flex justify-between gap-3"><span>Santri:</span><span class="font-bold text-right">${escapeReceiptText(tx.nama)}</span></div>
+                <div class="flex justify-between gap-3"><span>NIS:</span><span class="text-right">${escapeReceiptText(tx.nis)}</span></div>
+                <div class="flex justify-between gap-3 border-t border-b py-1 my-1">
+                    <span class="font-bold uppercase">${escapeReceiptText(jenis)}</span>
+                    <span class="font-bold text-sm">${formatRupiah(nominal)}</span>
+                </div>
+                <div class="flex justify-between gap-3"><span>Saldo Sebelum:</span><span class="text-right">${formatRupiah(saldoSblm)}</span></div>
+                <div class="flex justify-between gap-3"><span>Saldo Sesudah:</span><span class="font-bold text-emerald text-right">${formatRupiah(saldoSsdh)}</span></div>
+                <div class="text-[10px] text-slate-500 mt-2">Terbilang: ${escapeReceiptText(terbilang(nominal))} Rupiah</div>
+                <div class="text-right text-[10px] text-slate-400 mt-3">Petugas: ${escapeReceiptText(tx.admin)}</div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function reprintReceipt(txId) {
+            const tx = state.transactions.find(t => t.id === txId);
+            if(tx) showReceipt(tx);
+        }
+
+        function closeModalReceipt() {
+            document.getElementById('modalReceipt').classList.add('hidden');
+        }
+
+        function exportExcel() {
+            let csv = 'No. Transaksi,Waktu,NIS,Nama,Jenis,Nominal,Saldo Sebelum,Saldo Sesudah,Admin\n';
+            state.transactions.forEach(t => {
+                csv += `"${t.id}","${t.waktu}","${t.nis}","${t.nama}","${t.jenis}",${t.nominal},${t.saldoSblm},${t.saldoSsdh},"${t.admin}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Laporan_Tabungan_Santri_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function backupDatabase() {
+            const backupData = {
+                exportedAt: new Date().toISOString(),
+                application: 'SAKU-SANTRI - Dayah Babul Maghfirah',
+                santri: state.santriList,
+                transactions: state.transactions,
+                settings: state.settings
+            };
+            const backupStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", backupStr);
+            dlAnchor.setAttribute("download", `Backup_SantriMenabung_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchor.click();
+        }
+
+        async function savePengaturan(e) {
+            e.preventDefault();
+            const nama = document.getElementById('cfgNamaDayah').value.trim();
+            const password = document.getElementById('cfgNewPassword').value;
+            if (!nama) { alert('Nama dayah wajib diisi.'); return; }
+            if (password && password.length < 8) { alert('Password baru minimal 8 karakter.'); return; }
+            try {
+                const res = await apiCall('saveSettings',[nama,password,state.adminToken]);
+                if (!res || !res.success) throw new Error((res && res.message) || 'Pengaturan gagal disimpan.');
+                document.getElementById('cfgNewPassword').value = ''; state.settings.namaDayah = nama;
+                showToast(res.message || 'Pengaturan tersimpan.');
+            } catch(err) { alert(err.message); }
+        }
+
+        // UTILS
+        // Mengubah teks nominal berformat Indonesia menjadi angka murni untuk perhitungan.
+        function parseNominalInput(value) {
+            const digits = String(value == null ? '' : value).replace(/[^0-9]/g, '');
+            return digits ? Number(digits) : 0;
+        }
+
+        // Menampilkan pemisah ribuan titik saat pengguna mengetik, tanpa mengubah nilai nominal.
+        function formatNominalInput(input) {
+            if (!input) return;
+            const oldValue = input.value;
+            const oldCursor = input.selectionStart || oldValue.length;
+            const digitsBeforeCursor = oldValue.slice(0, oldCursor).replace(/[^0-9]/g, '').length;
+            const digits = oldValue.replace(/[^0-9]/g, '');
+            const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            input.value = formatted;
+
+            // Pertahankan posisi kursor agar pengeditan di tengah angka tetap nyaman.
+            let cursor = 0;
+            let seenDigits = 0;
+            while (cursor < formatted.length && seenDigits < digitsBeforeCursor) {
+                if (/\d/.test(formatted.charAt(cursor))) seenDigits++;
+                cursor++;
+            }
+            if (input === document.activeElement && typeof input.setSelectionRange === 'function') {
+                input.setSelectionRange(cursor, cursor);
+            }
+        }
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
+        }
+
+        function terbilang(n) {
+            const angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+            if (n < 12) return angka[n];
+            if (n < 20) return terbilang(n - 10) + " Belas";
+            if (n < 100) return terbilang(Math.floor(n / 10)) + " Puluh " + terbilang(n % 10);
+            if (n < 200) return "Seratus " + terbilang(n - 100);
+            if (n < 1000) return terbilang(Math.floor(n / 100)) + " Ratus " + terbilang(n % 100);
+            if (n < 2000) return "Seribu " + terbilang(n - 1000);
+            if (n < 1000000) return terbilang(Math.floor(n / 1000)) + " Ribu " + terbilang(n % 1000);
+            if (n < 1000000000) return terbilang(Math.floor(n / 1000000)) + " Juta " + terbilang(n % 1000000);
+            return n.toString();
+        }
+    </script>
+</body>
+</html>
