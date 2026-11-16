@@ -32,8 +32,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js for generating QR Codes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- HTML5 QR Code Scanner for Web Camera -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Chart.js for Financial Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -283,6 +281,50 @@
             *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
         }
 
+        /* ANDROID APP SHELL: bottom navigation menampilkan seluruh 8 menu */
+        #mainApp { display:flex; flex-direction:column !important; min-height:100dvh; background:#f3f7f5 !important; }
+        #mainApp aside { display:none !important; }
+        #mainApp main { width:100%; min-width:0; min-height:100dvh; height:auto !important; overflow:visible !important; padding-bottom:112px; background:#f3f7f5 !important; }
+        #mainApp header.glass-header { position:sticky; top:0; z-index:30; min-height:66px; padding:12px 16px !important; background:rgba(255,255,255,.96) !important; border-bottom:1px solid #e5eee9; box-shadow:0 3px 14px rgba(15,65,48,.06) !important; }
+        #mainApp header #pageTitle { color:#124b39 !important; font-size:17px !important; font-weight:800; }
+        #mainApp header .mobile-menu-btn { display:none !important; }
+        #mainApp header button[onclick="refreshData()"] { background:#0e6b4f !important; color:#fff !important; border-radius:13px !important; min-height:40px; padding:9px 12px !important; }
+        #mainApp header .flex.items-center.gap-4 { gap:8px !important; }
+        #mainApp main > div.p-4 { padding:14px !important; padding-bottom:18px !important; }
+        #mainApp .tab-content { min-width:0; width:100%; }
+        #mainApp .tab-content .grid { min-width:0; }
+        #mainApp .tab-content .overflow-x-auto { width:100%; }
+        #mainApp .tab-content .bg-white { border-radius:18px !important; }
+        #mainApp .tab-content input, #mainApp .tab-content select, #mainApp .tab-content textarea { font-size:14px; }
+        .android-bottom-nav { position:fixed; z-index:70; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-template-rows:repeat(2,49px); gap:3px; padding:7px 8px calc(7px + env(safe-area-inset-bottom)); background:rgba(255,255,255,.98); border-top:1px solid #dce9e2; box-shadow:0 -7px 24px rgba(15,65,48,.10); backdrop-filter:blur(16px); }
+        .android-bottom-nav .nav-item { min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:3px 2px; border-radius:12px; color:#71837a; background:transparent; font-size:9px; font-weight:700; line-height:1.05; text-align:center; white-space:normal; }
+        .android-bottom-nav .nav-item i { display:block; font-size:16px; line-height:18px; color:inherit !important; }
+        .android-bottom-nav .nav-item.active { color:#0e6b4f; background:#e8f5ee; }
+        .android-bottom-nav .nav-item span { display:block; max-width:100%; overflow-wrap:anywhere; }
+        #loginOverlay { background:radial-gradient(circle at 12% 8%,rgba(212,175,55,.16),transparent 30%),linear-gradient(150deg,#073f30,#0e6b4f 58%,#123f33) !important; padding:20px !important; }
+        #loginOverlay::before,#loginOverlay::after { border-color:rgba(255,255,255,.12); box-shadow:none; }
+        #loginOverlay > div { width:min(100%,430px) !important; max-width:430px !important; padding:30px 25px !important; border:1px solid rgba(255,255,255,.8) !important; border-top:5px solid #d4af37 !important; border-radius:28px !important; background:#fff !important; box-shadow:0 25px 70px rgba(0,0,0,.22) !important; }
+        #loginOverlay > div > div:first-child > div { width:104px !important; height:104px !important; padding:14px; border-radius:24px; background:#eff7f2; box-shadow:none; }
+        #loginOverlay h2 { color:#104b38 !important; font-size:27px !important; letter-spacing:-.7px !important; }
+        #loginOverlay > div > div:first-child p { color:#708178 !important; letter-spacing:.3px; }
+        #loginOverlay form input { min-height:54px; border-radius:15px !important; background:#f6faf7 !important; box-shadow:none !important; border:1px solid #dce9e1 !important; }
+        #btnLogin { min-height:55px; border-radius:15px !important; background:linear-gradient(110deg,#0e6b4f,#114d3d) !important; box-shadow:0 8px 18px rgba(14,107,79,.2) !important; font-size:15px; }
+        #reader { width:100%; min-height:250px; display:flex; align-items:center; justify-content:center; }
+        #qrVideo { width:100%; height:100%; min-height:250px; object-fit:cover; border-radius:14px; }
+        @media (max-width:420px) {
+            #mainApp header #pageTitle { max-width:55vw; font-size:15px !important; }
+            #mainApp header button[onclick="refreshData()"] { font-size:10px; padding:8px 9px !important; }
+            #mainApp main > div.p-4 { padding:10px !important; }
+            .android-bottom-nav { grid-template-rows:47px 47px; gap:2px; padding-left:5px; padding-right:5px; }
+            .android-bottom-nav .nav-item { font-size:8px; }
+            .android-bottom-nav .nav-item i { font-size:15px; }
+        }
+        @media (min-width:768px) {
+            #mainApp { max-width:100%; }
+            #mainApp main { max-width:1200px; margin:0 auto; }
+            .android-bottom-nav { left:50%; right:auto; transform:translateX(-50%); width:min(100%,900px); border:1px solid #dce9e2; border-bottom:0; border-radius:18px 18px 0 0; }
+        }
+
     </style>
 </head>
 <body class="h-full flex flex-col antialiased text-slate-800">
@@ -407,6 +449,18 @@
             </div>
         </aside>
 
+        <!-- ANDROID BOTTOM NAVIGATION: 8 menu terlihat sekaligus dalam 2 baris -->
+        <nav class="android-bottom-nav no-print" aria-label="Navigasi utama">
+            <button type="button" class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
+            <button type="button" class="nav-item" data-tab="santri" onclick="switchTab('santri')"><i class="fa-solid fa-users"></i><span>Data Santri</span></button>
+            <button type="button" class="nav-item" data-tab="setor" onclick="switchTab('setor')"><i class="fa-solid fa-circle-arrow-down"></i><span>Setor Uang</span></button>
+            <button type="button" class="nav-item" data-tab="tarik" onclick="switchTab('tarik')"><i class="fa-solid fa-qrcode"></i><span>Scan &amp; Tarik</span></button>
+            <button type="button" class="nav-item" data-tab="riwayat" onclick="switchTab('riwayat')"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat</span></button>
+            <button type="button" class="nav-item" data-tab="laporan" onclick="switchTab('laporan')"><i class="fa-solid fa-file-invoice-dollar"></i><span>Laporan</span></button>
+            <button type="button" class="nav-item" data-tab="kartu" onclick="switchTab('kartu')"><i class="fa-solid fa-id-card"></i><span>Kartu</span></button>
+            <button type="button" class="nav-item" data-tab="pengaturan" onclick="switchTab('pengaturan')"><i class="fa-solid fa-gear"></i><span>Pengaturan</span></button>
+        </nav>
+
         <!-- MAIN CONTENT CONTAINER -->
         <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
             <!-- Top Navbar Mobile / Header Desktop -->
@@ -423,6 +477,9 @@
                     </span>
                     <button onclick="refreshData()" class="px-3 py-1.5 bg-gold hover:bg-gold-dark text-slate-900 rounded-lg font-bold flex items-center gap-2 shadow-sm transition">
                         <i class="fa-solid fa-rotate"></i> Sync Data
+                    </button>
+                    <button onclick="handleLogout()" title="Keluar dari aplikasi" aria-label="Keluar" class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
+                        <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
                 </div>
             </header>
@@ -1084,68 +1141,63 @@
     </div>
 
     <script>
-        // Koneksi API langsung melalui POST ke Google Apps Script.
-        // Tidak lagi menggunakan iframe Bridge / postMessage.
-        const SAKU_CONFIG = { GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxxC32oMAp33qpnv6bmnN5dl_dsbH2sdfHCo73WTcqWx8oB7q_hfy2Y5ugWpkxgUnAx/exec' };
+        // Transport API POST melalui iframe tersembunyi (tanpa fetch/CORS).
+        const SAKU_CONFIG = { GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwXGvGcWevq-hjNyg5dR8S6rwxOUdbv_oyZ6TtDyb0E88kR4FzJkRDaHiYdwNC_x4QU/exec' };
+        const SAKU_PENDING_REQUESTS = new Map();
 
-        async function apiCall(action, args) {
+        window.addEventListener('message', function(event) {
+            // Hanya terima pesan dari host Google dan requestId yang sedang aktif.
+            const host = String(event.origin || '');
+            if (!(host === 'https://script.google.com' || host.endsWith('.googleusercontent.com'))) return;
+            const msg = event.data || {};
+            if (msg.type !== 'SAKU_API_RESPONSE' || msg.protocol !== 'SAKU_API_V1' || !msg.requestId) return;
+            const pending = SAKU_PENDING_REQUESTS.get(msg.requestId);
+            if (!pending) return;
+            SAKU_PENDING_REQUESTS.delete(msg.requestId);
+            clearTimeout(pending.timeoutId);
+            try { pending.iframe.remove(); pending.form.remove(); } catch (e) {}
+            if (!msg.ok) pending.reject(new Error(msg.error || 'Permintaan API gagal.'));
+            else pending.resolve(msg.result);
+        });
+
+        function apiCall(action, args) {
             if (!SAKU_CONFIG.GAS_WEB_APP_URL || SAKU_CONFIG.GAS_WEB_APP_URL.includes('GANTI_DENGAN')) {
-                throw new Error('URL Web App Apps Script belum diatur pada SAKU_CONFIG.');
+                return Promise.reject(new Error('URL Web App Apps Script belum diatur pada SAKU_CONFIG.'));
             }
-
             const requestId = 'saku-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            const payload = JSON.stringify({
+                protocol: 'SAKU_API_V1', requestId: requestId,
+                action: action, args: Array.isArray(args) ? args : []
+            });
 
-            try {
-                const response = await fetch(SAKU_CONFIG.GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    redirect: 'follow',
-                    cache: 'no-store',
-                    credentials: 'omit',
-                    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-                    body: JSON.stringify({
-                        protocol: 'SAKU_API_V1',
-                        requestId: requestId,
-                        action: action,
-                        args: Array.isArray(args) ? args : []
-                    }),
-                    signal: controller.signal
-                });
-
-                if (!response.ok) {
-                    throw new Error('Server Apps Script merespons HTTP ' + response.status + '.');
+            return new Promise((resolve, reject) => {
+                const iframe = document.createElement('iframe');
+                iframe.name = 'saku_api_' + requestId;
+                iframe.style.display = 'none';
+                iframe.setAttribute('aria-hidden', 'true');
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = SAKU_CONFIG.GAS_WEB_APP_URL;
+                form.target = iframe.name;
+                form.style.display = 'none';
+                const input = document.createElement('input');
+                input.type = 'hidden'; input.name = 'payload'; input.value = payload;
+                form.appendChild(input);
+                document.body.appendChild(iframe);
+                document.body.appendChild(form);
+                const timeoutId = setTimeout(() => {
+                    SAKU_PENDING_REQUESTS.delete(requestId);
+                    try { iframe.remove(); form.remove(); } catch (e) {}
+                    reject(new Error('Server tidak merespons dalam 30 detik. Periksa deployment Web App dan izin akses.'));
+                }, 30000);
+                SAKU_PENDING_REQUESTS.set(requestId, { resolve, reject, iframe, form, timeoutId });
+                try { form.submit(); }
+                catch (err) {
+                    clearTimeout(timeoutId); SAKU_PENDING_REQUESTS.delete(requestId);
+                    iframe.remove(); form.remove(); reject(new Error('Gagal mengirim permintaan ke Apps Script: ' + (err.message || err)));
                 }
-
-                const responseText = await response.text();
-                let payload;
-                try {
-                    payload = JSON.parse(responseText);
-                } catch (parseError) {
-                    throw new Error('Respons Apps Script bukan JSON yang valid. Periksa deployment Web App dan pastikan doPost versi terbaru sudah aktif.');
-                }
-
-                if (payload.requestId && payload.requestId !== requestId) {
-                    throw new Error('ID respons API tidak cocok. Silakan ulangi permintaan.');
-                }
-                if (!payload.ok) {
-                    throw new Error(payload.error || 'Permintaan API gagal diproses.');
-                }
-                return payload.result;
-            } catch (err) {
-                if (err && err.name === 'AbortError') {
-                    throw new Error('Server tidak merespons dalam 30 detik. Periksa deployment Web App dan koneksi internet.');
-                }
-                if (err instanceof TypeError) {
-                    throw new Error('Koneksi API Apps Script terhalang CORS atau jaringan. Pastikan doPost sudah diterbitkan pada deployment terbaru, lalu coba kembali.');
-                }
-                throw err;
-            } finally {
-                clearTimeout(timeoutId);
-            }
+            });
         }
-
 
         // Tampilkan / sembunyikan password pada form login dan pengaturan
         function togglePassword(inputId, iconId) {
@@ -1171,7 +1223,7 @@
         const state = {
             adminToken: null, adminName: 'Admin', santriList: [], transactions: [],
             selectedSantriForTarik: null, pendingSetorRequestId: null, pendingQrTxRequestId: null,
-            html5QrCode: null, cameraStarting: false, cameraWindow: null, cameraNonce: null,
+            cameraStarting: false, cameraStream: null, cameraFrame: null, barcodeDetector: null,
             qrProcessing: false, chartInstance: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
         };
 
@@ -1250,18 +1302,18 @@
             closeMobileNav();
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('bg-slate-800', 'text-white', 'font-bold');
+                el.classList.remove('bg-slate-800', 'text-white', 'font-bold', 'active');
                 el.classList.add('text-slate-300');
             });
 
             const targetTab = document.getElementById(`tab-${tabId}`);
-            const targetNav = document.getElementById(`nav-${tabId}`);
+            const targetNavs = document.querySelectorAll(`.nav-item[data-tab="${tabId}"], #nav-${tabId}`);
 
             if(targetTab) targetTab.classList.remove('hidden');
-            if(targetNav) {
-                targetNav.classList.add('bg-slate-800', 'text-white', 'font-bold');
+            targetNavs.forEach(targetNav => {
+                targetNav.classList.add('active', 'font-bold');
                 targetNav.classList.remove('text-slate-300');
-            }
+            });
 
             const titles = {
                 dashboard: 'Dashboard Overview',
@@ -1278,7 +1330,7 @@
             if(tabId === 'dashboard') initChart();
             if(tabId === 'santri') renderSantriTable();
             if(tabId === 'setor') populateSantriSelects();
-            if(tabId === 'tarik') stopCamera();
+            if(tabId !== 'tarik') stopCamera();
             if(tabId === 'riwayat') renderRiwayatTable();
             if(tabId === 'laporan') renderLaporanTable();
             if(tabId === 'kartu') populateSantriSelects();
@@ -1528,109 +1580,80 @@
             finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-circle text-lg"></i> Confirm & Simpan Penyimpanan'; }
         }
 
-        // SCAN QR & TARIK UANG LOGIC (Kamera Diperbaiki Untuk Google Apps Script Iframe)
-        // Kamera dijalankan pada halaman GitHub Pages HTTPS terpisah untuk menghindari
-        // pembatasan izin kamera pada iframe Google Apps Script.
+        // PEMINDAI QR TERINTEGRASI: kamera berjalan langsung di halaman GitHub Pages ini.
+        // Tidak membuka situs/repository kamera lain dan tidak memerlukan library scanner eksternal.
         async function startCamera() {
-            const cameraUrlBase = 'https://nurhaliza7035-lgtm.github.io/nabung/';
-            if (!cameraUrlBase || cameraUrlBase.includes('GANTI_DENGAN_URL')) {
-                alert('Konfigurasikan URL kamera GitHub Pages terlebih dahulu pada variabel cameraUrlBase di fungsi startCamera().');
+            if (state.cameraStarting) return;
+            if (!('BarcodeDetector' in window)) {
+                alert('Browser ini belum mendukung pemindaian QR bawaan. Gunakan Chrome Android versi terbaru atau masukkan nomor rekening secara manual.');
                 return;
             }
-
-            if (state.cameraWindow && !state.cameraWindow.closed) {
-                state.cameraWindow.focus();
-                return;
+            try {
+                await stopCamera();
+                state.cameraStarting = true;
+                const reader = document.getElementById('reader');
+                reader.innerHTML = '<video id="qrVideo" autoplay muted playsinline></video>';
+                const video = document.getElementById('qrVideo');
+                state.cameraStream = await navigator.mediaDevices.getUserMedia({
+                    audio:false,
+                    video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
+                });
+                video.srcObject = state.cameraStream;
+                await video.play();
+                state.barcodeDetector = new BarcodeDetector({formats:['qr_code']});
+                state.cameraStarting = false;
+                showToast('Kamera aktif. Arahkan QR kartu santri ke kamera.','fa-camera text-emerald-400');
+                const scanFrame = async () => {
+                    if (!state.cameraStream || !video || video.readyState < 2) return;
+                    try {
+                        const codes = await state.barcodeDetector.detect(video);
+                        if (codes && codes.length && codes[0].rawValue) {
+                            const value = String(codes[0].rawValue).trim();
+                            await stopCamera();
+                            processQrCodeResult(value);
+                            showToast('QR santri berhasil dipindai.');
+                            return;
+                        }
+                    } catch (scanError) { console.warn('Pemindaian QR:', scanError); }
+                    if (state.cameraStream) state.cameraFrame = requestAnimationFrame(scanFrame);
+                };
+                state.cameraFrame = requestAnimationFrame(scanFrame);
+            } catch (error) {
+                state.cameraStarting = false;
+                await stopCamera();
+                alert('Kamera tidak dapat dibuka. Pastikan izin kamera diberikan dan aplikasi dibuka melalui HTTPS. Detail: ' + (error && error.message ? error.message : error));
             }
+        }
 
-            const nonce = (window.crypto && crypto.randomUUID)
-                ? crypto.randomUUID()
-                : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
-
-            state.cameraNonce = nonce;
-            const url = cameraUrlBase + '?nonce=' + encodeURIComponent(nonce);
-            state.cameraWindow = window.open(url, 'SantriMenabungCamera', 'popup,width=520,height=760,resizable=yes,scrollbars=yes');
-
-            if (!state.cameraWindow) {
-                alert('Halaman kamera diblokir oleh browser. Izinkan pop-up untuk situs aplikasi ini, lalu klik Buka Kamera kembali.');
-                return;
+        async function stopCamera() {
+            if (state.cameraFrame) cancelAnimationFrame(state.cameraFrame);
+            state.cameraFrame = null;
+            if (state.cameraStream) {
+                state.cameraStream.getTracks().forEach(track => track.stop());
+                state.cameraStream = null;
             }
-
-            showToast('Halaman kamera dibuka. Izinkan akses kamera jika diminta.', 'fa-camera text-emerald-400');
+            state.barcodeDetector = null;
+            const video = document.getElementById('qrVideo');
+            if (video) { try { video.pause(); video.srcObject = null; } catch (_) {} }
+            state.cameraStarting = false;
         }
 
-        // Hanya menerima hasil dari jendela kamera yang dibuka aplikasi dan nonce yang cocok.
-        window.addEventListener('message', function(event) {
-            if (!state.cameraWindow || event.source !== state.cameraWindow) return;
-            if (!event.data || event.data.type !== 'SANTRI_MENABUNG_QR_RESULT') return;
-            if (event.data.nonce !== state.cameraNonce) return;
-
-            const qrText = String(event.data.value || '').trim();
-            state.cameraNonce = null;
-            state.cameraWindow = null;
-
-            if (!qrText) {
-                showToast('Tidak ada hasil QR yang diterima.', 'fa-circle-exclamation text-amber-400');
-                return;
-            }
-            processQrCodeResult(qrText);
-            showToast('Hasil QR diterima dari kamera.');
-        });
-
-        // CARI FUNGSI INI DI DALAM TAG <script>:
-async function stopCamera() {
-    if (state.cameraWindow && !state.cameraWindow.closed) {
-        try { state.cameraWindow.postMessage({ type: 'SANTRI_MENABUNG_CAMERA_STOP', nonce: state.cameraNonce }, '*'); } catch (_) {}
-        try { state.cameraWindow.close(); } catch (_) {}
-    }
-    state.cameraWindow = null;
-    state.cameraNonce = null;
-
-    const scanner = state.html5QrCode;
-    if (!scanner) return;
-
-    state.html5QrCode = null;
-
-    try {
-        if (scanner.isScanning) {
-            await scanner.stop();
+        async function scanQrFromFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            try {
+                if (!('BarcodeDetector' in window)) throw new Error('Browser belum mendukung pembacaan QR dari gambar. Gunakan Chrome Android terbaru.');
+                const detector = new BarcodeDetector({formats:['qr_code']});
+                const bitmap = await createImageBitmap(file);
+                const codes = await detector.detect(bitmap);
+                bitmap.close && bitmap.close();
+                if (!codes.length || !codes[0].rawValue) throw new Error('QR Code tidak ditemukan pada gambar.');
+                processQrCodeResult(String(codes[0].rawValue).trim());
+                showToast('QR dari gambar berhasil dibaca.');
+            } catch (err) {
+                alert(err.message || 'QR Code tidak dapat dibaca dari gambar.');
+            } finally { event.target.value = ''; }
         }
-    } catch (error) {
-        console.warn('Peringatan saat menghentikan kamera:', error);
-    }
-
-    try {
-        await scanner.clear();
-    } catch (error) {
-        console.warn('Peringatan saat membersihkan scanner:', error);
-    }
-}
-
-// TEMPELKAN KODE BARU TEPAT DI BAWAH FUNGSI stopCamera():
-async function scanQrFromFile(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-
-    let fileScanner = null;
-    try {
-        await stopCamera();
-        if (typeof Html5Qrcode === 'undefined') {
-            throw new Error('Library pemindai QR belum dimuat.');
-        }
-        fileScanner = new Html5Qrcode('reader');
-        const decodedText = await fileScanner.scanFile(file, true);
-        processQrCodeResult(String(decodedText || '').trim());
-        showToast('QR Code berhasil dibaca!');
-    } catch (err) {
-        alert('QR Code tidak terdeteksi pada gambar. Pastikan foto QR terlihat jelas, terang, dan fokus.');
-        console.error('Gagal scan file QR:', err);
-    } finally {
-        if (fileScanner) {
-            try { await fileScanner.clear(); } catch (clearErr) { console.warn('Gagal membersihkan pemindai gambar:', clearErr); }
-        }
-        event.target.value = '';
-    }
-}
 
         function cariSantriByRekening() {
             const rek = document.getElementById('manualRekInput').value.trim();
