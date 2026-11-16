@@ -537,7 +537,7 @@
                         <div class="w-8 h-8 rounded-full bg-emerald flex items-center justify-center text-xs font-bold">ADM</div>
                         <div class="text-xs">
                             <p class="font-bold text-white" id="adminDisplayName">Admin Utama</p>
-                            <p class="text-slate-400">Ustad. Azwar, S.Kom</p>
+                            <p class="text-slate-400">Administrator</p>
                         </div>
                     </div>
                     <button onclick="handleLogout()" title="Keluar" class="p-2 text-slate-400 hover:text-red-400 transition">
@@ -750,7 +750,7 @@
                                         <th class="p-4">NIS</th>
                                         <th class="p-4">Nama Lengkap</th>
                                         <th class="p-4">No. Rekening</th>
-                                        <th class="p-4">Kelas / Halaqah</th>
+                                        <th class="p-4">Kelas / Wali Kamar</th>
                                         <th class="p-4">Wali Santri</th>
                                         <th class="p-4">Saldo</th>
                                         <th class="p-4">Status</th>
@@ -799,7 +799,7 @@
                                     <p id="setorSaldoCurrent" class="font-bold text-slate-800 text-sm">Rp 0</p>
                                 </div>
                                 <div>
-                                    <span class="text-slate-400">Kelas / Halaqah:</span>
+                                    <span class="text-slate-400">Kelas / Wali Kamar:</span>
                                     <p id="setorKelas" class="font-bold text-slate-800">-</p>
                                 </div>
                             </div>
@@ -1169,7 +1169,7 @@
                             </button>
                         </form>
 
-                        <div class="border-t pt-6">
+                        <div class="border-t pt-6 hidden" aria-hidden="true">
                             <h4 class="font-bold text-slate-800 text-sm mb-2">Pencadangan Database (Backup Data)</h4>
                             <p class="text-xs text-slate-500 mb-4">Unduh seluruh snapshot data santri dan riwayat transaksi dalam bentuk JSON.</p>
                             <button onclick="backupDatabase()" class="px-5 py-2.5 bg-slate-800 text-white font-bold rounded-xl text-xs shadow hover:bg-slate-900 transition flex items-center gap-2">
@@ -1221,11 +1221,35 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Kelas</label>
-                        <input type="text" id="santriKelas" required class="w-full p-2.5 rounded-xl border text-sm outline-none" placeholder="Contoh: 1 A Ulya">
+                        <select id="santriKelas" required class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                            <option value="">-- Pilih Kelas --</option>
+                            <option>VII-A</option><option>VII-B</option>
+                            <option>VIII-A</option><option>VIII-B</option>
+                            <option>IX-A</option><option>IX-B</option>
+                            <option>X-A</option><option>X-B</option>
+                            <option>XI-A</option><option>XI-B</option>
+                            <option>XII-A</option><option>XII-B</option><option>XII-C</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Halaqah</label>
-                        <input type="text" id="santriHalaqah" class="w-full p-2.5 rounded-xl border text-sm outline-none" placeholder="Contoh: Ust. Ahmad">
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Wali Kamar</label>
+                        <select id="santriHalaqah" required class="w-full p-2.5 rounded-xl border text-sm outline-none">
+                            <option value="">-- Pilih Wali Kamar --</option>
+                            <option>Ustad Muhammad Agung</option>
+                            <option>Ustad Khalil Ibral</option>
+                            <option>Ustad Abdurrahman Saragih</option>
+                            <option>Ustad Muhammad Irfan</option>
+                            <option>Ustad Musafir Aulia</option>
+                            <option>Ustazah Sella Ovitayanti</option>
+                            <option>Ustazah Intan Darli</option>
+                            <option>Ustazah Rossi Sartika</option>
+                            <option>Ustazah Wardah</option>
+                            <option>Ustadzah Cut Annisa Ulfitrah</option>
+                            <option>Ustazah Windi Alhafiza Rambe</option>
+                            <option>Ustazah Hafizah</option>
+                            <option>Ustazah Syifa</option>
+                            <option>Ustazah Lisiyana Feranti</option>
+                        </select>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -1247,6 +1271,42 @@
                     <button type="submit" class="flex-1 py-2.5 bg-emerald text-white font-bold rounded-xl text-xs shadow hover:bg-emerald-dark">Simpan Santri</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL CATAT PEMBAYARAN TUNAI PINJAMAN -->
+    <div id="modalPayLoan" class="fixed inset-0 z-[70] hidden bg-slate-950/60 backdrop-blur-sm items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="payLoanTitle">
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-t-4 border-emerald">
+            <div class="p-5 sm:p-6">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl bg-emerald/10 text-emerald flex items-center justify-center"><i class="fa-solid fa-money-bill-wave text-xl"></i></div>
+                        <div><h3 id="payLoanTitle" class="font-extrabold text-lg text-slate-800">Catat Pembayaran Tunai</h3><p class="text-xs text-slate-500">Pembayaran pinjaman</p></div>
+                    </div>
+                    <button type="button" onclick="closePayLoanModal()" class="text-slate-400 hover:text-slate-700 p-1" aria-label="Tutup"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4 mb-4 space-y-2">
+                    <div class="flex justify-between gap-3 text-sm"><span class="text-slate-500">Peminjam</span><strong id="payLoanBorrower" class="text-slate-800 text-right">-</strong></div>
+                    <div class="flex justify-between gap-3 text-sm"><span class="text-slate-500">Total tagihan</span><strong id="payLoanBill" class="text-red-600 text-right">Rp0</strong></div>
+                </div>
+                <label for="payLoanAmount" class="block text-xs font-bold uppercase text-slate-600 mb-2">Jumlah pembayaran tunai (Rp)</label>
+                <input id="payLoanAmount" type="text" inputmode="numeric" autocomplete="off" oninput="formatNominalInput(this)" class="w-full p-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald outline-none font-bold text-lg" placeholder="Masukkan nominal">
+                <p class="text-xs text-slate-500 mt-2">Nominal tidak boleh melebihi total tagihan.</p>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closePayLoanModal()" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm">Batal</button>
+                    <button id="btnConfirmPayLoan" type="button" onclick="submitLoanPayment()" class="flex-1 py-3 rounded-xl bg-emerald hover:bg-emerald-dark text-white font-bold text-sm shadow-lg"><i class="fa-solid fa-check mr-1"></i> Simpan Pembayaran</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOTIFIKASI TENGAH LAYAR -->
+    <div id="modalCenterNotice" class="fixed inset-0 z-[80] hidden bg-slate-950/60 backdrop-blur-sm items-center justify-center p-4" role="alertdialog" aria-modal="true">
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center">
+            <div id="centerNoticeIconWrap" class="w-16 h-16 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4"><i id="centerNoticeIcon" class="fa-solid fa-circle-check text-3xl"></i></div>
+            <h3 id="centerNoticeTitle" class="text-lg font-extrabold text-slate-800 mb-2">Berhasil</h3>
+            <p id="centerNoticeMessage" class="text-sm text-slate-600 leading-relaxed">Pembayaran berhasil dicatat.</p>
+            <button type="button" onclick="closeCenterNotice()" class="mt-6 w-full py-3 rounded-xl bg-emerald text-white font-bold text-sm">Tutup</button>
         </div>
     </div>
 
@@ -1369,7 +1429,7 @@
             adminToken: null, adminName: 'Admin', santriList: [], transactions: [], loans: [],
             selectedSantriForTarik: null, pendingSetorRequestId: null, pendingQrTxRequestId: null,
             html5QrCode: null, cameraStarting: false, cameraWindow: null, cameraNonce: null,
-            qrProcessing: false, chartInstance: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
+            qrProcessing: false, chartInstance: null, activePayLoanId: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
         };
 
         // DOM Elements
@@ -1633,8 +1693,8 @@
                 document.getElementById('santriNis').disabled = true;
                 document.getElementById('santriNama').value = s.nama;
                 document.getElementById('santriJk').value = s.jk;
-                document.getElementById('santriKelas').value = s.kelas;
-                document.getElementById('santriHalaqah').value = s.halaqah;
+                setSelectValueWithLegacyOption('santriKelas', s.kelas, '-- Kelas lama: ');
+                setSelectValueWithLegacyOption('santriHalaqah', s.halaqah, '-- Wali kamar lama: ');
                 document.getElementById('santriWali').value = s.wali;
                 document.getElementById('santriKontak').value = s.kontak;
                 document.getElementById('saldoAwalField').classList.add('hidden');
@@ -1645,6 +1705,19 @@
             document.getElementById('modalSantri').classList.remove('hidden');
         }
 
+        function setSelectValueWithLegacyOption(id, value, prefix) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const val = String(value || '');
+            if (val && !Array.from(select.options).some(o => o.value === val)) {
+                const option = document.createElement('option');
+                option.value = val;
+                option.textContent = prefix + val;
+                select.appendChild(option);
+            }
+            select.value = val;
+        }
+
         function closeModalSantri() {
             document.getElementById('modalSantri').classList.add('hidden');
         }
@@ -1652,20 +1725,48 @@
         async function saveSantri(e) {
             e.preventDefault();
             const editRow = document.getElementById('santriEditIndex').value;
+            const form = document.getElementById('formSantri');
+            const btn = form.querySelector('button[type="submit"]');
+            if (!form.reportValidity() || (btn && btn.disabled)) return;
+            const originalButtonHtml = btn ? btn.innerHTML : '';
             const payload = {
-                nis: document.getElementById('santriNis').value.trim(), nama: document.getElementById('santriNama').value.trim(),
-                jk: document.getElementById('santriJk').value, kelas: document.getElementById('santriKelas').value,
-                halaqah: document.getElementById('santriHalaqah').value, wali: document.getElementById('santriWali').value.trim(),
-                kontak: document.getElementById('santriKontak').value.trim(), saldoAwal: parseNominalInput(document.getElementById('santriSaldoAwal').value)
+                nis: document.getElementById('santriNis').value.trim(),
+                nama: document.getElementById('santriNama').value.trim(),
+                jk: document.getElementById('santriJk').value,
+                kelas: document.getElementById('santriKelas').value,
+                halaqah: document.getElementById('santriHalaqah').value,
+                wali: document.getElementById('santriWali').value.trim(),
+                kontak: document.getElementById('santriKontak').value.trim(),
+                saldoAwal: parseNominalInput(document.getElementById('santriSaldoAwal').value)
             };
-            const btn = document.querySelector('#formSantri button[type="submit"]');
-            if (btn) btn.disabled = true;
+            if (!payload.kelas || !payload.halaqah) {
+                showToast('Pilih kelas dan wali kamar terlebih dahulu.', 'fa-circle-exclamation text-amber-400');
+                return;
+            }
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Menyimpan...';
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+            const formControls = Array.from(form.querySelectorAll('input, select, button'));
+            const originalDisabledStates = new Map(formControls.map(el => [el, el.disabled]));
+            formControls.forEach(el => { if (el !== btn) el.disabled = true; });
             try {
-                const res = await apiCall('saveSantri',[payload,editRow,state.adminToken]);
+                const res = await apiCall('saveSantri', [payload, editRow, state.adminToken]);
                 if (!res || !res.success) throw new Error((res && res.message) || 'Data santri gagal disimpan.');
-                closeModalSantri(); await refreshData(); showToast(res.message || 'Data santri berhasil disimpan.');
-            } catch(err) { alert(err.message); }
-            finally { if (btn) btn.disabled = false; }
+                closeModalSantri();
+                await refreshData();
+                showToast(res.message || 'Data santri berhasil disimpan.');
+            } catch (err) {
+                showToast(err.message || 'Gagal menyimpan data santri.', 'fa-circle-exclamation text-amber-400');
+            } finally {
+                formControls.forEach(el => { if (el !== btn) el.disabled = originalDisabledStates.get(el); });
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalButtonHtml;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            }
         }
 
         function editSantri(idx) {
@@ -2141,13 +2242,77 @@ async function scanQrFromFile(event) {
             document.getElementById('loanOutstanding').innerText=formatRupiah(principal);document.getElementById('loanFines').innerText=formatRupiah(fines);
             body.innerHTML=loans.length?loans.slice().reverse().map(l=>`<tr class="border-b"><td class="p-3 font-semibold">${l.borrowerName}<div class="text-xs text-slate-400">${l.borrowerType==='SANTRI'?'Santri':'Ustad/Ustazah'}</div></td><td class="p-3 text-xs">${l.dueDate}</td><td class="p-3">${formatRupiah(l.outstandingPrincipal)}</td><td class="p-3 text-amber-700">${formatRupiah(l.outstandingFine)}<div class="text-xs">${l.fineDays} hari</div></td><td class="p-3 font-bold">${formatRupiah(Number(l.outstandingPrincipal)+Number(l.outstandingFine))}</td><td class="p-3">${l.status}</td><td class="p-3">${l.status==='LUNAS'?'-':`<button onclick="payLoan('${l.id}')" class="px-3 py-2 bg-emerald text-white rounded-lg text-xs">Catat Tunai</button>`}</td></tr>`).join(''):'<tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pinjaman.</td></tr>';
         }
-        async function payLoan(id){
-            const loan=(state.loans||[]).find(x=>String(x.id)===String(id));if(!loan)return;
-            const max=Number(loan.outstandingPrincipal||0)+Number(loan.outstandingFine||0);
-            const raw=prompt(`Tagihan saat ini ${formatRupiah(max)}. Masukkan jumlah pembayaran TUNAI:`);if(raw===null)return;
-            const amount=parseNominalInput(raw);if(!Number.isSafeInteger(amount)||amount<=0||amount>max){alert('Nominal pembayaran tidak valid.');return;}
-            try{const res=await apiCall('repayLoan',[{loanId:id,amount},state.adminToken]);if(!res?.success)throw new Error(res?.message||'Pembayaran gagal.');await refreshData();renderLoans();showToast('Pembayaran tunai pinjaman tercatat.');}catch(err){alert(err.message);}
+        function payLoan(id) {
+            const loan = (state.loans || []).find(x => String(x.id) === String(id));
+            if (!loan) return;
+            const total = Number(loan.outstandingPrincipal || 0) + Number(loan.outstandingFine || 0);
+            state.activePayLoanId = String(id);
+            document.getElementById('payLoanBorrower').innerText = loan.borrowerName || '-';
+            document.getElementById('payLoanBill').innerText = formatRupiah(total);
+            document.getElementById('payLoanAmount').value = formatRupiah(total).replace(/[^0-9]/g, '');
+            const modal = document.getElementById('modalPayLoan');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => document.getElementById('payLoanAmount').focus(), 80);
         }
+
+        function closePayLoanModal() {
+            const modal = document.getElementById('modalPayLoan');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            state.activePayLoanId = null;
+        }
+
+        function showCenterNotice(title, message, success = true) {
+            const modal = document.getElementById('modalCenterNotice');
+            const wrap = document.getElementById('centerNoticeIconWrap');
+            const icon = document.getElementById('centerNoticeIcon');
+            wrap.className = success
+                ? 'w-16 h-16 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4'
+                : 'w-16 h-16 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4';
+            icon.className = success ? 'fa-solid fa-circle-check text-3xl' : 'fa-solid fa-circle-exclamation text-3xl';
+            document.getElementById('centerNoticeTitle').innerText = title;
+            document.getElementById('centerNoticeMessage').innerText = message;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCenterNotice() {
+            const modal = document.getElementById('modalCenterNotice');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function submitLoanPayment() {
+            const id = state.activePayLoanId;
+            const loan = (state.loans || []).find(x => String(x.id) === String(id));
+            if (!loan) { closePayLoanModal(); return; }
+            const max = Number(loan.outstandingPrincipal || 0) + Number(loan.outstandingFine || 0);
+            const amount = parseNominalInput(document.getElementById('payLoanAmount').value);
+            if (!Number.isSafeInteger(amount) || amount <= 0 || amount > max) {
+                showCenterNotice('Nominal tidak valid', 'Masukkan jumlah pembayaran lebih dari Rp0 dan tidak melebihi ' + formatRupiah(max) + '.', false);
+                return;
+            }
+            const btn = document.getElementById('btnConfirmPayLoan');
+            if (btn.disabled) return;
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
+            try {
+                const res = await apiCall('repayLoan', [{ loanId: id, amount }, state.adminToken]);
+                if (!res || !res.success) throw new Error((res && res.message) || 'Pembayaran gagal dicatat.');
+                closePayLoanModal();
+                await refreshData();
+                renderLoans();
+                showCenterNotice('Pembayaran Berhasil', 'Pembayaran tunai sebesar ' + formatRupiah(amount) + ' berhasil dicatat.');
+            } catch (err) {
+                showCenterNotice('Pembayaran Gagal', err.message || 'Terjadi kesalahan saat menyimpan pembayaran.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+        }
+
 
         // PASSBOOK CARD GENERATOR
         function renderKartuTabungan() {
