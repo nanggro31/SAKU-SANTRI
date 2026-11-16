@@ -378,7 +378,7 @@
             #mainApp header #pageTitle { max-width:52vw; white-space:normal; line-height:1.25; font-size:17px; }
             #mainApp header .flex.items-center.gap-4 { gap:6px !important; align-items:flex-start; }
             #mainApp header button[onclick="refreshData()"] { padding:9px 10px !important; min-height:38px; font-size:10px; }
-            #mainApp main > div.p-4 { padding:17px 13px 26px !important; }
+            #mainApp main > div.p-4 { padding:17px 13px calc(112px + env(safe-area-inset-bottom)) !important; }
             #mainApp .tab-content { min-width:0; width:100%; }
             #mainApp .tab-content .grid { min-width:0; }
             #mainApp .tab-content .p-5, #mainApp .tab-content .p-6 { padding:15px !important; }
