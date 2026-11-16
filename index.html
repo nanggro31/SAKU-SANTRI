@@ -1100,10 +1100,24 @@
             bridgeFrame.src = SAKU_CONFIG.GAS_WEB_APP_URL + (SAKU_CONFIG.GAS_WEB_APP_URL.includes('?') ? '&' : '?') + 'bridge=1';
             document.body.appendChild(bridgeFrame);
         }
+        function sendBridgeRequest(requestId, pending) {
+            if (!bridgeReady || !bridgeFrame || !pending || pending.sent) return;
+            pending.sent = true;
+            try {
+                bridgeFrame.contentWindow.postMessage({type:'SAKU_BRIDGE_REQUEST',requestId,action:pending.action,args:pending.args}, '*');
+            } catch (err) {
+                clearTimeout(pending.timer); bridgePending.delete(requestId);
+                pending.reject(new Error('Gagal mengirim permintaan ke Bridge: ' + (err.message || err)));
+            }
+        }
         window.addEventListener('message', function(event) {
             if (!bridgeFrame || event.source !== bridgeFrame.contentWindow || !event.data) return;
             const data = event.data;
-            if (data.type === 'SAKU_BRIDGE_READY') { bridgeReady = true; return; }
+            if (data.type === 'SAKU_BRIDGE_READY') {
+                bridgeReady = true;
+                bridgePending.forEach((pending, requestId) => sendBridgeRequest(requestId, pending));
+                return;
+            }
             if (data.type !== 'SAKU_BRIDGE_RESPONSE' || !data.requestId) return;
             const pending = bridgePending.get(data.requestId);
             if (!pending) return;
@@ -1115,9 +1129,18 @@
                 if (!bridgeFrame) initApiBridge();
                 if (!bridgeFrame) { reject(new Error('URL Web App Apps Script belum diatur pada SAKU_CONFIG.')); return; }
                 const requestId = 'saku-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-                const timer = setTimeout(() => { bridgePending.delete(requestId); reject(new Error('Server tidak merespons dalam 30 detik. Periksa deployment Web App dan koneksi internet.')); },30000);
-                bridgePending.set(requestId,{resolve,reject,timer});
-                bridgeFrame.contentWindow.postMessage({type:'SAKU_BRIDGE_REQUEST',requestId,action,args}, '*');
+                const timer = setTimeout(() => {
+                    const pending = bridgePending.get(requestId);
+                    bridgePending.delete(requestId);
+                    if (pending) pending.reject(new Error(!bridgeReady
+                        ? 'Bridge Google Apps Script belum siap setelah 30 detik. Periksa apakah file HTML bernama Bridge sudah dibuat dan deployment versi terbaru sudah diterbitkan.'
+                        : 'Bridge sudah terhubung, tetapi fungsi server tidak membalas dalam 30 detik. Periksa eksekusi Apps Script dan akses Spreadsheet.'));
+                },30000);
+                const pending = {resolve,reject,timer,action,args,sent:false};
+                bridgePending.set(requestId,pending);
+                // Jangan kirim sebelum Bridge mengirim sinyal READY. Ini mencegah pesan
+                // hilang saat iframe Apps Script masih dalam proses redirect/pemuatan.
+                sendBridgeRequest(requestId,pending);
             });
         }
         window.addEventListener('DOMContentLoaded', initApiBridge);
