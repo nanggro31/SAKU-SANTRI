@@ -36,6 +36,10 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Chart.js for Financial Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Export Excel dan PDF laporan -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -1035,22 +1039,26 @@
                     </div>
 
                     <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 no-print">
-                        <h3 class="font-bold text-slate-800">Filter Laporan Penarikan</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <h3 class="font-bold text-slate-800">Filter Rincian Setoran & Penarikan</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <select id="reportType" onchange="renderLaporanTable()" class="p-3 rounded-xl border border-slate-200 text-sm">
+                                <option value="ALL">Semua Transaksi</option><option value="SETOR">Setoran</option><option value="TARIK">Penarikan</option>
+                            </select>
                             <select id="reportPeriod" onchange="renderLaporanTable()" class="p-3 rounded-xl border border-slate-200 text-sm">
                                 <option value="day">Per Hari</option><option value="week">Per Minggu</option><option value="month" selected>Per Bulan</option><option value="year">Per Tahun</option><option value="all">Semua Periode</option>
                             </select>
                             <input type="date" id="reportDate" onchange="renderLaporanTable()" class="p-3 rounded-xl border border-slate-200 text-sm">
                             <input type="text" id="reportName" oninput="renderLaporanTable()" placeholder="Cari nama / NIS" class="p-3 rounded-xl border border-slate-200 text-sm">
-                            <button onclick="exportLaporanPenarikan()" class="p-3 rounded-xl bg-emerald text-white font-bold text-sm"><i class="fa-solid fa-file-excel mr-1"></i> Ekspor Penarikan</button>
+                            <button onclick="exportLaporanPenarikan()" class="p-3 rounded-xl bg-emerald text-white font-bold text-sm"><i class="fa-solid fa-file-excel mr-1"></i> Ekspor Excel</button>
+                            <button onclick="exportLaporanPDF()" class="p-3 rounded-xl bg-red-600 text-white font-bold text-sm"><i class="fa-solid fa-file-pdf mr-1"></i> Ekspor PDF</button>
                         </div>
-                        <p class="text-xs text-slate-500">Laporan ini hanya menampilkan transaksi PENARIKAN tabungan, bukan setoran atau struk transaksi.</p>
+                        <p class="text-xs text-slate-500">Pilih jenis transaksi dan periode untuk melihat serta mengekspor rincian setoran maupun penarikan.</p>
                     </div>
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <div class="p-4 flex justify-between items-center gap-3"><h3 class="font-bold text-slate-800">Rincian Penarikan</h3><strong id="reportWithdrawalCount" class="text-sm text-red-600">0 transaksi</strong></div>
+                        <div class="p-4 flex justify-between items-center gap-3"><h3 id="reportDetailTitle" class="font-bold text-slate-800">Rincian Semua Transaksi</h3><strong id="reportWithdrawalCount" class="text-sm text-emerald">0 transaksi</strong></div>
                         <div class="overflow-x-auto"><table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase"><tr><th class="p-4">Tanggal</th><th class="p-4">Nama Santri</th><th class="p-4">NIS</th><th class="p-4">Keterangan</th><th class="p-4 text-right">Nominal Penarikan</th></tr></thead>
-                            <tbody id="laporanSaldoTableBody" class="divide-y divide-slate-100"><tr><td colspan="5" class="p-5 text-center text-slate-400">Belum ada data penarikan.</td></tr></tbody>
+                            <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase"><tr><th class="p-4">Tanggal</th><th class="p-4">Nama Santri</th><th class="p-4">NIS</th><th class="p-4">Jenis</th><th class="p-4">Keterangan</th><th class="p-4 text-right">Nominal</th></tr></thead>
+                            <tbody id="laporanSaldoTableBody" class="divide-y divide-slate-100"><tr><td colspan="6" class="p-5 text-center text-slate-400">Belum ada data transaksi.</td></tr></tbody>
                         </table></div>
                     </div>
                 </section>
@@ -2012,38 +2020,94 @@ async function scanQrFromFile(event) {
             });
         }
 
-        function renderLaporanTable() {
-            const body = document.getElementById('laporanSaldoTableBody');
+        function getFilteredLaporanTransactions() {
             const period = document.getElementById('reportPeriod')?.value || 'month';
+            const type = document.getElementById('reportType')?.value || 'ALL';
             const dateValue = document.getElementById('reportDate')?.value || new Date().toISOString().slice(0,10);
             const nameQuery = (document.getElementById('reportName')?.value || '').toLowerCase().trim();
             const ref = new Date(dateValue + 'T12:00:00');
             const startOfWeek = new Date(ref); startOfWeek.setDate(ref.getDate() - ((ref.getDay()+6)%7));
             const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+7);
-            const filtered = state.transactions.filter(t => {
-                if (t.jenis !== 'TARIK') return false;
-                const d = new Date(String(t.waktu).replace(' ','T'));
+            return (state.transactions || []).filter(t => {
+                if (type !== 'ALL' && String(t.jenis || '').toUpperCase() !== type) return false;
+                const d = new Date(String(t.waktu || '').replace(' ','T'));
                 if (Number.isNaN(d.getTime())) return false;
                 const matchPeriod = period === 'all' || (period === 'day' && d.toDateString() === ref.toDateString()) ||
                     (period === 'week' && d >= startOfWeek && d < endOfWeek) ||
                     (period === 'month' && d.getFullYear()===ref.getFullYear() && d.getMonth()===ref.getMonth()) ||
                     (period === 'year' && d.getFullYear()===ref.getFullYear());
-                const matchName = !nameQuery || String(t.nama).toLowerCase().includes(nameQuery) || String(t.nis).toLowerCase().includes(nameQuery);
+                const matchName = !nameQuery || String(t.nama || '').toLowerCase().includes(nameQuery) || String(t.nis || '').toLowerCase().includes(nameQuery);
                 return matchPeriod && matchName;
             }).sort((a,b)=>String(b.waktu).localeCompare(String(a.waktu)));
-            const totalTarik = filtered.reduce((sum,t)=>sum+Number(t.nominal||0),0);
-            document.getElementById('reportTotalSetor').innerText = formatRupiah(state.transactions.filter(t=>t.jenis==='SETOR').reduce((s,t)=>s+Number(t.nominal||0),0));
+        }
+
+        function renderLaporanTable() {
+            const body = document.getElementById('laporanSaldoTableBody');
+            if (!body) return;
+            const filtered = getFilteredLaporanTransactions();
+            const totalSetor = filtered.filter(t=>t.jenis==='SETOR').reduce((s,t)=>s+Number(t.nominal||0),0);
+            const totalTarik = filtered.filter(t=>t.jenis==='TARIK').reduce((s,t)=>s+Number(t.nominal||0),0);
+            const selectedType = document.getElementById('reportType')?.value || 'ALL';
+            const title = selectedType === 'SETOR' ? 'Rincian Setoran' : selectedType === 'TARIK' ? 'Rincian Penarikan' : 'Rincian Semua Transaksi';
+            document.getElementById('reportTotalSetor').innerText = formatRupiah(totalSetor);
             document.getElementById('reportTotalTarik').innerText = formatRupiah(totalTarik);
             document.getElementById('reportTotalNetto').innerText = formatRupiah(state.santriList.reduce((s,x)=>s+Number(x.saldo||0),0));
-            document.getElementById('reportWithdrawalCount').innerText = `${filtered.length} transaksi • ${formatRupiah(totalTarik)}`;
+            document.getElementById('reportWithdrawalCount').innerText = `${filtered.length} transaksi • Setor ${formatRupiah(totalSetor)} • Tarik ${formatRupiah(totalTarik)}`;
+            document.getElementById('reportDetailTitle').innerText = title;
             document.getElementById('printReportDate').innerText = 'Dicetak Tanggal: ' + new Date().toLocaleString('id-ID');
-            body.innerHTML = filtered.length ? filtered.map(t=>`<tr class="border-b border-slate-100"><td class="p-4 text-xs">${t.waktu}</td><td class="p-4 font-semibold">${t.nama}</td><td class="p-4 text-xs">${t.nis}</td><td class="p-4 text-xs">${t.ket||'-'}</td><td class="p-4 text-right font-bold text-red-600">${formatRupiah(t.nominal)}</td></tr>`).join('') : '<tr><td colspan="5" class="p-6 text-center text-slate-400">Tidak ada transaksi penarikan pada filter ini.</td></tr>';
+            body.innerHTML = filtered.length ? filtered.map(t=>`<tr class="border-b border-slate-100"><td class="p-4 text-xs">${t.waktu || '-'}</td><td class="p-4 font-semibold">${t.nama || '-'}</td><td class="p-4 text-xs">${t.nis || '-'}</td><td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${t.jenis==='SETOR'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${t.jenis || '-'}</span></td><td class="p-4 text-xs">${t.ket||'-'}</td><td class="p-4 text-right font-bold ${t.jenis==='SETOR'?'text-green-600':'text-red-600'}">${formatRupiah(t.nominal)}</td></tr>`).join('') : '<tr><td colspan="6" class="p-6 text-center text-slate-400">Tidak ada transaksi pada filter ini.</td></tr>';
+        }
+
+        function downloadExcelRows(rows, fileName, sheetName) {
+            if (typeof XLSX !== 'undefined') {
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                ws['!cols'] = rows[0].map((_,i)=>({wch: Math.min(32, Math.max(14, ...rows.slice(0,100).map(r=>String(r[i] ?? '').length + 2)))}));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, sheetName || 'Laporan');
+                XLSX.writeFile(wb, fileName.replace(/\.csv$/i, '.xlsx'));
+                return;
+            }
+            // Fallback CSV dengan delimiter titik koma agar Excel lokal Indonesia membaca kolom terpisah.
+            const csv = '\uFEFF' + rows.map(row=>row.map(value=>{const v=String(value ?? '').replace(/"/g,'""');return '"'+v+'"';}).join(';')).join('\r\n');
+            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob); const a=document.createElement('a');
+            a.href=url; a.download=fileName.replace(/\.xlsx$/i,'.csv'); a.click();
+            setTimeout(()=>URL.revokeObjectURL(url),1000);
         }
 
         function exportLaporanPenarikan() {
-            const rows = [...document.querySelectorAll('#laporanSaldoTableBody tr')].map(tr=>[...tr.children].map(td=>'"'+td.innerText.replace(/"/g,'""')+'"').join(','));
-            const csv = 'Tanggal,Nama Santri,NIS,Keterangan,Nominal Penarikan\n' + rows.join('\n');
-            const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download='Laporan_Penarikan_SAKU_SANTRI.csv'; a.click(); URL.revokeObjectURL(a.href);
+            const filtered = getFilteredLaporanTransactions();
+            const rows = [['No. Transaksi','Tanggal & Waktu','NIS','Nama Santri','Jenis Transaksi','Keterangan','Nominal (Rp)','Saldo Sebelum (Rp)','Saldo Sesudah (Rp)','Admin']];
+            filtered.forEach(t=>rows.push([t.id||'',t.waktu||'',t.nis||'',t.nama||'',t.jenis||'',t.ket||'',Number(t.nominal||0),Number(t.saldoSblm||0),Number(t.saldoSsdh||0),t.admin||'']));
+            downloadExcelRows(rows, 'Laporan_Rincian_SAKU_SANTRI.xlsx', 'Rincian Transaksi');
+        }
+
+        function exportLaporanPDF() {
+            const filtered = getFilteredLaporanTransactions();
+            const type = document.getElementById('reportType')?.value || 'ALL';
+            const title = type === 'SETOR' ? 'LAPORAN RINCIAN SETORAN' : type === 'TARIK' ? 'LAPORAN RINCIAN PENARIKAN' : 'LAPORAN RINCIAN SETORAN & PENARIKAN';
+            const rows = filtered.map(t=>[t.waktu||'-',t.nama||'-',t.nis||'-',t.jenis||'-',t.ket||'-',formatRupiah(t.nominal)]);
+            const totalSetor = filtered.filter(t=>t.jenis==='SETOR').reduce((s,t)=>s+Number(t.nominal||0),0);
+            const totalTarik = filtered.filter(t=>t.jenis==='TARIK').reduce((s,t)=>s+Number(t.nominal||0),0);
+            if (window.jspdf && window.jspdf.jsPDF) {
+                const doc = new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+                doc.setFontSize(15); doc.text('DAYAH BABUL MAGHFIRAH',148,14,{align:'center'});
+                doc.setFontSize(11); doc.text(title,148,21,{align:'center'});
+                doc.setFontSize(8); doc.text('Dicetak: '+new Date().toLocaleString('id-ID'),14,28);
+                doc.autoTable({startY:33,head:[['Tanggal & Waktu','Nama Santri','NIS','Jenis','Keterangan','Nominal']],body:rows,styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[14,107,79]},columnStyles:{5:{halign:'right'}}});
+                const y=(doc.lastAutoTable?.finalY||40)+8;
+                doc.setFontSize(10); doc.text('Total Setoran: '+formatRupiah(totalSetor),14,y);
+                doc.text('Total Penarikan: '+formatRupiah(totalTarik),100,y);
+                doc.text('Jumlah Transaksi: '+filtered.length,210,y);
+                doc.save('Laporan_Keuangan_SAKU_SANTRI.pdf');
+                return;
+            }
+            // Fallback jika pustaka PDF gagal dimuat: gunakan dialog cetak browser dan simpan sebagai PDF.
+            const win=window.open('','_blank');
+            if(!win){alert('Popup diblokir. Izinkan popup untuk mengunduh PDF.');return;}
+            const tableRows=rows.map(r=>'<tr>'+r.map(c=>'<td>'+String(c).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))+'</td>').join('')+'</tr>').join('');
+            win.document.write('<html><head><title>'+title+'</title><style>body{font:12px Arial;padding:20px}h2,h3,p{text-align:center}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:6px;text-align:left;font-size:10px}th{background:#e8f5e9}</style></head><body><h2>DAYAH BABUL MAGHFIRAH</h2><h3>'+title+'</h3><p>Dicetak: '+new Date().toLocaleString('id-ID')+'</p><table><thead><tr><th>Tanggal & Waktu</th><th>Nama Santri</th><th>NIS</th><th>Jenis</th><th>Keterangan</th><th>Nominal</th></tr></thead><tbody>'+tableRows+'</tbody></table><p>Total Setoran: '+formatRupiah(totalSetor)+' | Total Penarikan: '+formatRupiah(totalTarik)+' | Jumlah: '+filtered.length+'</p><scr'+'ipt>window.onload=()=>window.print();</scr'+'ipt></body></html>');
+            win.document.close();
         }
 
         function populateLoanStudents() {
@@ -2260,16 +2324,9 @@ async function scanQrFromFile(event) {
         }
 
         function exportExcel() {
-            let csv = 'No. Transaksi,Waktu,NIS,Nama,Jenis,Nominal,Saldo Sebelum,Saldo Sesudah,Admin\n';
-            state.transactions.forEach(t => {
-                csv += `"${t.id}","${t.waktu}","${t.nis}","${t.nama}","${t.jenis}",${t.nominal},${t.saldoSblm},${t.saldoSsdh},"${t.admin}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `Laporan_Tabungan_Santri_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            const rows = [['No. Transaksi','Waktu','NIS','Nama Santri','Jenis','Nominal (Rp)','Saldo Sebelum (Rp)','Saldo Sesudah (Rp)','Admin']];
+            (state.transactions || []).forEach(t => rows.push([t.id||'',t.waktu||'',t.nis||'',t.nama||'',t.jenis||'',Number(t.nominal||0),Number(t.saldoSblm||0),Number(t.saldoSsdh||0),t.admin||'']));
+            downloadExcelRows(rows, `Laporan_Tabungan_Santri_${new Date().toISOString().split('T')[0]}.xlsx`, 'Data Transaksi');
         }
 
         function backupDatabase() {
