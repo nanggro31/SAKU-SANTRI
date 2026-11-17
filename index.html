@@ -977,7 +977,8 @@
                             <p class="text-xs text-slate-500 mt-4">Denda bertambah otomatis berdasarkan tanggal hari ini dan berhenti setelah pokok pinjaman lunas.</p>
                         </div>
                     </div>
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"><div class="p-4 font-bold">Daftar Pinjaman dan Pembayaran</div><div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-xs uppercase"><tr><th class="p-3">Peminjam</th><th class="p-3">Jatuh Tempo</th><th class="p-3">Pokok Sisa</th><th class="p-3">Denda</th><th class="p-3">Total Tagihan</th><th class="p-3">Status</th><th class="p-3">Aksi</th></tr></thead><tbody id="loanTableBody"><tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pinjaman.</td></tr></tbody></table></div></div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"><div class="p-4 font-bold">Daftar Pinjaman dan Pembayaran</div><div class="px-4 pb-3 flex flex-col sm:flex-row gap-2"><input id="loanSearchInput" oninput="renderLoans()" placeholder="Cari nama / ID pinjaman..." class="p-2.5 rounded-xl border border-slate-200 text-xs flex-1"><select id="loanStatusFilter" onchange="renderLoans()" class="p-2.5 rounded-xl border border-slate-200 text-xs"><option value="ALL">Semua Status</option><option value="BELUM LUNAS">Belum Lunas</option><option value="LUNAS">Lunas</option></select></div><div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-xs uppercase"><tr><th class="p-3">Peminjam</th><th class="p-3">Jatuh Tempo</th><th class="p-3">Pokok Sisa</th><th class="p-3">Denda</th><th class="p-3">Total Tagihan</th><th class="p-3">Status</th><th class="p-3">Aksi</th></tr></thead><tbody id="loanTableBody"><tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pinjaman.</td></tr></tbody></table></div></div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"><div class="p-4 font-bold">Riwayat Pembayaran Tunai</div><div class="px-4 pb-3 flex flex-col sm:flex-row gap-2"><input id="loanPaymentSearch" oninput="renderLoanPayments()" placeholder="Cari peminjam / ID pembayaran..." class="p-2.5 rounded-xl border border-slate-200 text-xs flex-1"><input type="date" id="loanPaymentDate" onchange="renderLoanPayments()" class="p-2.5 rounded-xl border border-slate-200 text-xs"></div><div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-xs uppercase"><tr><th class="p-3">ID Pembayaran</th><th class="p-3">Tanggal</th><th class="p-3">Peminjam</th><th class="p-3">Denda Dibayar</th><th class="p-3">Total Tagihan</th><th class="p-3">Tunai Dibayar</th><th class="p-3">Aksi</th></tr></thead><tbody id="loanPaymentTableBody"><tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pembayaran.</td></tr></tbody></table></div></div>
                 </section>
 
                 <section id="tab-riwayat" class="tab-content hidden space-y-6">
@@ -1297,6 +1298,7 @@
                 </div>
                 <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4 mb-4 space-y-2">
                     <div class="flex justify-between gap-3 text-sm"><span class="text-slate-500">Peminjam</span><strong id="payLoanBorrower" class="text-slate-800 text-right">-</strong></div>
+                    <div class="flex justify-between gap-3 text-sm"><span class="text-slate-500">Denda</span><strong id="payLoanFine" class="text-amber-700 text-right">Rp0</strong></div>
                     <div class="flex justify-between gap-3 text-sm"><span class="text-slate-500">Total tagihan</span><strong id="payLoanBill" class="text-red-600 text-right">Rp0</strong></div>
                 </div>
                 <label for="payLoanAmount" class="block text-xs font-bold uppercase text-slate-600 mb-2">Jumlah pembayaran tunai (Rp)</label>
@@ -1450,7 +1452,7 @@
 
         // GLOBAL APP STATE — data hanya berasal dari backend Google Sheets.
         const state = {
-            adminToken: null, adminName: 'Admin', santriList: [], transactions: [], loans: [],
+            adminToken: null, adminName: 'Admin', santriList: [], transactions: [], loans: [], loanPayments: [],
             selectedSantriForTarik: null, pendingSetorRequestId: null, pendingQrTxRequestId: null,
             html5QrCode: null, cameraStarting: false, cameraGeneration: 0,
             qrProcessing: false, chartInstance: null, activePayLoanId: null, settings: { namaDayah: 'Dayah Babul Maghfirah' }
@@ -1634,6 +1636,7 @@
                 state.santriList = Array.isArray(data.santri) ? data.santri : [];
                 state.transactions = Array.isArray(data.transactions) ? data.transactions : [];
                 state.loans = Array.isArray(data.loans) ? data.loans : [];
+                state.loanPayments = Array.isArray(data.loanPayments) ? data.loanPayments : [];
                 state.settings = data.settings || state.settings;
                 const cfgName = document.getElementById('cfgNamaDayah');
                 if (cfgName) cfgName.value = state.settings.namaDayah || 'Dayah Babul Maghfirah';
@@ -2381,7 +2384,30 @@
             const loans=state.loans||[];let principal=0,fines=0;
             loans.forEach(l=>{principal+=Number(l.outstandingPrincipal||0);fines+=Number(l.outstandingFine||0);});
             document.getElementById('loanOutstanding').innerText=formatRupiah(principal);document.getElementById('loanFines').innerText=formatRupiah(fines);
-            body.innerHTML=loans.length?loans.slice().reverse().map(l=>`<tr class="border-b"><td class="p-3 font-semibold">${l.borrowerName}<div class="text-xs text-slate-400">${l.borrowerType==='SANTRI'?'Santri':'Ustad/Ustazah'}</div></td><td class="p-3 text-xs">${l.dueDate}</td><td class="p-3">${formatRupiah(l.outstandingPrincipal)}</td><td class="p-3 text-amber-700">${formatRupiah(l.outstandingFine)}<div class="text-xs">${l.fineDays} hari</div></td><td class="p-3 font-bold">${formatRupiah(Number(l.outstandingPrincipal)+Number(l.outstandingFine))}</td><td class="p-3">${l.status}</td><td class="p-3">${l.status==='LUNAS'?'-':`<button onclick="payLoan('${l.id}')" class="px-3 py-2 bg-emerald text-white rounded-lg text-xs">Catat Tunai</button>`}</td></tr>`).join(''):'<tr><td colspan="7" class="p-5 text-center text-slate-400">Belum ada pinjaman.</td></tr>';
+            const q=(document.getElementById('loanSearchInput')?.value||'').toLowerCase();
+            const status=document.getElementById('loanStatusFilter')?.value||'ALL';
+            const filtered=loans.filter(l=>(status==='ALL'||l.status===status)&&((l.borrowerName||'').toLowerCase().includes(q)||(l.id||'').toLowerCase().includes(q)));
+            body.innerHTML=filtered.length?filtered.slice().reverse().map(l=>`<tr class="border-b"><td class="p-3 font-semibold">${escapeHtml(l.borrowerName)}<div class="text-xs text-slate-400">${l.borrowerType==='SANTRI'?'Santri':'Ustad/Ustazah'}</div></td><td class="p-3 text-xs">${escapeHtml(l.dueDate)}</td><td class="p-3">${formatRupiah(l.outstandingPrincipal)}</td><td class="p-3 text-amber-700">${formatRupiah(l.outstandingFine)}<div class="text-xs">${l.fineDays} hari</div></td><td class="p-3 font-bold">${formatRupiah(Number(l.outstandingPrincipal)+Number(l.outstandingFine))}</td><td class="p-3">${l.status}</td><td class="p-3 whitespace-nowrap">${l.status==='LUNAS'?'':`<button onclick="payLoan('${l.id}')" class="px-3 py-2 bg-emerald text-white rounded-lg text-xs">Catat Tunai</button>`} <button onclick="deleteLoan('${l.id}')" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="7" class="p-5 text-center text-slate-400">Tidak ada pinjaman sesuai filter.</td></tr>';
+            renderLoanPayments();
+        }
+        function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+        function renderLoanPayments(){
+            const body=document.getElementById('loanPaymentTableBody');if(!body)return;
+            const q=(document.getElementById('loanPaymentSearch')?.value||'').toLowerCase();
+            const date=(document.getElementById('loanPaymentDate')?.value||'');
+            const rows=(state.loanPayments||[]).filter(p=>((p.borrowerName||'').toLowerCase().includes(q)||(p.id||'').toLowerCase().includes(q)||(p.loanId||'').toLowerCase().includes(q))&&(!date||String(p.waktu||'').slice(0,10)===date));
+            body.innerHTML=rows.length?rows.slice().reverse().map(p=>`<tr class="border-b"><td class="p-3 text-xs">${escapeHtml(p.id)}</td><td class="p-3 text-xs">${escapeHtml(p.waktu)}</td><td class="p-3 font-semibold">${escapeHtml(p.borrowerName||'-')}</td><td class="p-3 text-amber-700">${formatRupiah(p.finePaid)}</td><td class="p-3 font-bold">${formatRupiah(p.totalBill)}</td><td class="p-3">${formatRupiah(p.amount)}</td><td class="p-3"><button onclick="deleteLoanPayment('${p.id}')" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="7" class="p-5 text-center text-slate-400">Tidak ada pembayaran sesuai filter.</td></tr>';
+        }
+        async function deleteLoan(id){
+            const loan=(state.loans||[]).find(x=>String(x.id)===String(id));if(!loan)return;
+            if(!confirm('Hapus pinjaman '+(loan.borrowerName||'')+'? Seluruh riwayat pembayaran terkait juga akan dihapus.'))return;
+            try{const res=await apiCall('deleteLoan',[id,state.adminToken]);if(!res?.success)throw new Error(res?.message||'Pinjaman gagal dihapus.');await refreshData();renderLoans();showToast(res.message||'Pinjaman dihapus.');}
+            catch(err){showCenterNotice('Gagal Menghapus',err.message||'Terjadi kesalahan.',false);}
+        }
+        async function deleteLoanPayment(id){
+            if(!confirm('Hapus catatan pembayaran ini? Nilai pokok dan denda akan dikembalikan ke tagihan pinjaman.'))return;
+            try{const res=await apiCall('deleteLoanPayment',[id,state.adminToken]);if(!res?.success)throw new Error(res?.message||'Pembayaran gagal dihapus.');await refreshData();renderLoans();showToast(res.message||'Pembayaran dihapus.');}
+            catch(err){showCenterNotice('Gagal Menghapus',err.message||'Terjadi kesalahan.',false);}
         }
         function payLoan(id) {
             const loan = (state.loans || []).find(x => String(x.id) === String(id));
@@ -2389,11 +2415,11 @@
             const total = Number(loan.outstandingPrincipal || 0) + Number(loan.outstandingFine || 0);
             state.activePayLoanId = String(id);
             document.getElementById('payLoanBorrower').innerText = loan.borrowerName || '-';
+            document.getElementById('payLoanFine').innerText = formatRupiah(loan.outstandingFine || 0);
             document.getElementById('payLoanBill').innerText = formatRupiah(total);
-            document.getElementById('payLoanAmount').value = formatRupiah(total).replace(/[^0-9]/g, '');
+            document.getElementById('payLoanAmount').value = String(total);
             const modal = document.getElementById('modalPayLoan');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
             setTimeout(() => document.getElementById('payLoanAmount').focus(), 80);
         }
 
